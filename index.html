@@ -1,0 +1,465 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" , initial-scale="1" />
+    <meta name="theme-color" content="" #17152B />
+    <meta name="color-scheme" content="light" />
+    <link
+      rel="icon"
+      type="image/svg=xml"
+      href="data:image/svg+xml,%3Csvgxmlns='http://www.w3.org/2000/svg'viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='18' fill='%237655F6' /%3E%3Cpath d='M32 10 36.8 27.2 54 321-17.2 4.8L32 541-4.8-17.2L10 32l17.2-4.8z' fill='white' /%3E%3C/ svg%3E"
+    />
+    <meta
+      name="description"
+      content="A thoughtful home for your plans, focus time, and daily wins."
+    />
+    <meta property="og:title" content="FlowSpace - make room for your day" />
+    <meta
+      property="og;description"
+      content="A thoughtful home for your plans, focus time, and daily wins."
+    />
+    <title>FlowSpace - make room for your day</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="src/flowspace.css" />
+
+    <!-- Font Awesome: keep ONLY ONE of these two active -->
+
+    <!-- OFFLINE version (active now) -->
+    <link rel="stylesheet" href="css/all.min.css" />
+
+    <!-- ONLINE version (switched off)
+    <link
+      rel="stylesheet"
+      href="https://use.fontawesome.com/releases/v6.5.2/css/all.css"
+    />
+  --></head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="Main-navigation">
+        <div class="brand">
+          <span class="brand-mark"
+            ><i
+              class="fa-solid fa-wand-magic-sparkles"
+              aria-hidden="true"
+            ></i></span
+          ><span class="brand-name">Flowspace</span>
+        </div>
+        <p class="workspace-label">Workspace</p>
+        <nav class="nav-list">
+          <button
+            class="nav-link active"
+            data-target="overview"
+            aria-current="page"
+          >
+            <i class="fa-solid fa-house" aria-hidden="true"></i
+            ><span>My day</span>
+          </button>
+          <button class="nav-link" data-target="tasks">
+            <i class="fa-regular fa-square-check" aria-hidden="true"></i
+            ><span>My tasks</span
+            ><span class="nav-count" id="nav-task-count">-</span>
+          </button>
+          <button class="nav-link" data-target="focus">
+            <i class="fa-regular fa-clock" aria-hidden="true"></i
+            ><span>Focus room</span>
+          </button>
+          <button class="nav-link" data-target="activity">
+            <i class="fa-solid fa-chart-simple" aria-hidden="true"></i
+            ><span>Insights</span>
+          </button>
+          <button class="nav-link" data-target="themes">
+            <i class="fa-solid fa-sliders" aria-hidden="true"></i
+            ><span>Preferences</span>
+          </button>
+        </nav>
+        <div class="sidebar-spacer"></div>
+        <div class="sidebar-note">
+          <span class="note-icon"
+            ><i class="fa-regular fa-lightbulb" aria-hidden="true"></i>
+          </span>
+          <strong>A little reminder</strong>
+          <p>You don't have to do it all. Just the next thing.</p>
+        </div>
+        <div class="profile">
+          <span class="avatar" aria-hidden="true">AM</span>
+          <span class="profile-copy"
+            ><strong>Alex Morgan</strong><span>Your personal Space</span>
+          </span>
+          <button
+            class="profile-menu"
+            aria-label="Profile options"
+            id="profile-button"
+          >
+            <i class="fa-solid fa-ellipsis" aria-hidden="true"></i>
+          </button>
+        </div>
+      </aside>
+
+      <main class="main">
+        <header class="topbar">
+          <div class="crumb">
+            <span>Workspace</span
+            ><i class="fa-solid fa-chevron-right" aria-hidden="true"></i
+            ><strong>My day</strong>
+          </div>
+          <div class="top-actions">
+            <button
+              class
+              class="icon-button mobile menu"
+              id="mobile-menu"
+              aria-label="Open navigation"
+            >
+              <i class="fa-solid fa-bars" aria-hidden="true"></i>
+            </button>
+            <label class="search-wrap"
+              ><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i
+              ><span class="sr-only">Search tasks</span
+              ><input
+                id="task-search"
+                type="search"
+                placeholder="Find a task..."
+                autocomplete="off"
+              />
+            </label>
+            <button
+              class="icon-button"
+              id="notifications-button"
+              aria-label="Notifications"
+            >
+              <i class="fa-regular fa-bell" aria-hidden="true"></i>
+            </button>
+          </div>
+        </header>
+
+        <div class="content" id="overview">
+          <section class="welcome-row" aria-labelledby="welcome-title">
+            <div>
+              <p class="eyebrow" id="current-date">YOUR DAY, YOUR PACE</p>
+              <h1 id="welcome-title">
+                Good morning, Alex<span aria-hidden="true"></span>
+              </h1>
+              <p>A fresh page. Let's make it a good one.</p>
+            </div>
+            <div class="welcome-actions">
+              <button class="button button-primary" id="add-task">
+                <i class="fa-solid fa-plus" aria-hidden="true"></i> Add a task
+              </button>
+              <button class="button button-soft" id="focus-shortcut">
+                <i class="fa-regular fa-hourglass-half" aria-hidden="true"></i>
+                Start focusing
+              </button>
+            </div>
+          </section>
+
+          <section class="stats-grid" aria-label="Today's productivity summary">
+            <article class="stat-card">
+              <div class="stat-top">
+                <span>Completed</span
+                ><span class="stat-icon"
+                  ><i class="fa-solid fa-check" aria-hidden="true"></i>
+                </span>
+              </div>
+              <div class="stat-number" id="stat-completed">0</div>
+              <div class="stat-foot">tasks crossed off today</div>
+            </article>
+
+            <article class="stat-card">
+              <div class="stat-top">
+                <span>In progress</span
+                ><span class="stat-icon"
+                  ><i class="fa-solid fa-rotate" aria-hidden="true"></i>
+                </span>
+              </div>
+            </article>
+
+            <article class="stat-card">
+              <div class="stat-top">
+                <span>Up next</span
+                ><span class="stat-icon"
+                  ><i class="fa-regular fa-calendar" aria-hidden="true"></i>
+                </span>
+              </div>
+              <div class="stat-number" id="stat-upcoming">0</div>
+              <div class="stat-foot">ready when you are</div>
+            </article>
+
+            <article class="stat-card">
+              <div class="stat-top">
+                <span>Focus time</span
+                ><span class="stat-icon"
+                  ><i
+                    class="fa-regular fa-hourglass-half"
+                    aria-hidden="true"
+                  ></i>
+                </span>
+              </div>
+              <div class="stat-number" id="stat-focus">
+                0<span style="font-size: 13px; font-weight: 700">m</span>
+              </div>
+              <div class="stat-foot">collected today</div>
+            </article>
+          </section>
+
+          <div class="dashboard-grid">
+            <section
+              class="board-panel"
+              id="tasks"
+              aria-labelledby="board-title"
+            >
+              <div class="section-heading">
+                <div>
+                  <h2 id="board-title">Your task board</h2>
+                  <p class="section-subtitle">
+                    Keep the important things moving.
+                  </p>
+                </div>
+                <button class="button button-soft" id="board-add">
+                  <i class="fa-solid fa-plus" aria-hidden="true"></i>New task
+                </button>
+              </div>
+
+              <div class="board-toolbar">
+                <label
+                  ><span class="sr-only">Filter by category</span
+                  ><select class="filter-select" id="category-filter">
+                    <option value="all">All categories</option>
+                  </select> </label
+                ><label
+                  ><span class="sr-only">Filter ny priority</span
+                  ><select class="filter-select" id="priority-filter">
+                    <option value="all">All priorities</option>
+                    <option value="high">High priority</option>
+                    <option value="medium">Medium priority</option>
+                    <option value="low">Low priority</option>
+                  </select>
+                </label>
+                <span class="toolbar-spacer"></span>
+                <label
+                  ><span class="sr-only">Sort tasks</span
+                  ><select class="filter-select" id="sort-filter">
+                    <option value="created">Recently added</option>
+                    <option value="due">Due date</option>
+                    <option value="priority">Priority</option>
+                  </select>
+                </label>
+              </div>
+
+              <div class="board-columns" aria-live="polite">
+                <section
+                  class="task-column column-todo"
+                  data-column="todo"
+                  aria-labelledby="todo-heading"
+                >
+                  <div class="column-head">
+                    <span class="column-dot"></span
+                    ><strong id="todo-hearing">To do</strong
+                    ><span class="column-count" id="count-todo">0</span>
+                  </div>
+                  <div class="task-list" id="list-todo"></div>
+                </section>
+                <section
+                  class="task-column column-progress"
+                  data-column="progress"
+                  aria-labelledby="progress-heading"
+                >
+                  <div class="column-head">
+                    <span class="column-dot"></span
+                    ><strong id="progress-heading">In progress</strong
+                    ><span class="column-count" id="count-progress">0</span>
+                  </div>
+                  <div class="task-list" id="list-progress"></div>
+                </section>
+
+                <section
+                  class="task-column scolumn-done"
+                  data-column="completed"
+                  aria-labelledby="done-heading"
+                >
+                  <div class="colmn-head">
+                    <span class="column-dot"></span
+                    ><strong id="done-heading">Completed</strong
+                    ><span class="column-count" id="count-comleted">0</span>
+                  </div>
+                  <div class="task-list" id="list-completed"></div>
+                </section>
+              </div>
+            </section>
+
+            <aside class="right-rail" aria-label="Daily tools">
+              <section
+                class="widget focus-widget"
+                id="focus"
+                aria-labelledby="focus-title"
+              >
+                <div class="widget-header">
+                  <h3 id="focus-title">Focus room</h3>
+                  <span
+                    ><i class="fa-solid fa-volume-low" aria-hidden="true"></i
+                    >Quiet time
+                  </span>
+                </div>
+                <div class="timer-mode" roles="group" aria-label="Timer mode">
+                  <button
+                    class="mode-button active"
+                    data-mode="focus"
+                    aria-pressed="true"
+                  >
+                    Focus
+                  </button>
+                  <button
+                    class="mode-button"
+                    data-mode="break"
+                    aria-pressed="false"
+                  >
+                    Short break
+                  </button>
+                </div>
+                <div
+                  class="timer-display"
+                  id="timer-display"
+                  role="timer"
+                  aria-live="off"
+                >
+                  25:00
+                </div>
+                <p class="timer-caption" id="timer-caption">
+                  One thing at a time. You've got this.
+                </p>
+                <div class="timer-actions">
+                  <button class="button timer-start" id="timer-toggle">
+                    <i class="fa-solid fa-play" aria-hidden="true"></i>Start
+                    focus
+                  </button>
+                  <button
+                    class="button timer-reset"
+                    id="timer-reset"
+                    aria-label="Reset timer"
+                  >
+                    <i
+                      class="fa-solid fa-arrow-rotate-left"
+                      aria-hidden="true"
+                    ></i>
+                  </button>
+                </div>
+              </section>
+
+              <section class="widget" aria-labelledby="goal-title">
+                <div class="widget-header">
+                  <h3 id="goal-title">Daily goal</h3>
+                  <span id="goal-label">0 of 5 tasks</span>
+                </div>
+                <div class="goal-row">
+                  <div
+                    class="goal-ring"
+                    id="goal-ring"
+                    role="img"
+                    aria-label="Daily goal progress"
+                  >
+                    <strong id="goal-percent">0%</strong>
+                  </div>
+                  <div class="goal-copy">
+                    <strong>Small wins add up.</strong
+                    ><span id="goal-support">You're just getting started</span>
+                  </div>
+                  <div class="goal-adjust">
+                    <button id="goal-minus" aria-label="Decrease daily goal">
+                      -</button
+                    ><button id="goal-plus" aria-label="Increase daily goal">
+                      +
+                    </button>
+                  </div>
+                </div>
+              </section>
+
+              <section
+                class="widget"
+                id="activity"
+                aria-labelledby="activity-title"
+              >
+                <div class="widget-header">
+                  <h3 id="activity-title">Your rhythm</h3>
+                  <span>Last 7 days</span>
+                </div>
+                <div
+                  class="activity-bars"
+                  id="activity-bars"
+                  role="img"
+                  aria-label="Focus minutes over the last seven days"
+                ></div>
+                <div class="activity-legend">
+                  <span>Focus minutes</span
+                  ><strong id="week-total">0 min this week</strong>
+                </div>
+              </section>
+
+              <section
+                class="widget"
+                id="themes"
+                aria-labelledby="themes-title"
+              >
+                <div class="widget-header">
+                  <h3 id="themes-title">A little color</h3>
+                  <span>Theme</span>
+                </div>
+                <div
+                  class="theme-list"
+                  role="group"
+                  aria-label="Choose a color theme"
+                >
+                  <button
+                    class="theme-option"
+                    data-theme="electric"
+                    aria-pressed="true"
+                  >
+                    <span class="swatches" aria-hidden="true"
+                      ><i style="background: #17152b"></i
+                      ><i style="background: #7655f6"></i
+                      ><i style="background: #ff718b"></i
+                      ><i style="background: #64ddb5"></i> </span
+                    >Electric Bloom<small>Default</small>
+                  </button>
+                  <button
+                    class="theme-option"
+                    data-theme="ocean"
+                    aria-pressed="false"
+                  >
+                    <span class="swatches" aria-hidden="true"
+                      ><i style="background: #123344"></i
+                      ><i style="background: #188e9b"></i
+                      ><i style="background: #5cc6b1"></i
+                      ><i style="background: #f3b969"></i> </span
+                    >Ocean Breeze
+                  </button>
+                  <button
+                    class="theme-option"
+                    data-theme="sunset"
+                    aria-pressed="false"
+                  >
+                    <span class="swatches" aria-hidden="true"
+                      ><i style="background: #3a2442"></i
+                      ><i style="background: #e87967"></i
+                      ><i style="background: #f3a34d"></i
+                      ><i style="background: A9C884"></i> </span
+                    >Sunset Glow
+                  </button>
+                </div>
+                <p class="theme-footnote">
+                  A softer backdrop for whatever kind of day you're having.
+                </p>
+              </section>
+            </aside>
+          </div>
+        </div>
+      </main>
+    </div>
+    <div id="modal-root"></div>
+    <div id="toast-root" aria-live="polite"></div>
+    <script type="module" src="src/flowspace.js"></script>
+  </body>
+</html>
