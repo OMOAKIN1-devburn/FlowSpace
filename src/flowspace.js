@@ -314,6 +314,7 @@ function visibleTasks() {
 }
 
 function renderTasks() {
+  ensureUniqueIds();
   const filtered = visibleTasks();
   const statuses = [
     ["todo", "To do", "fa-circle-plus"],
@@ -662,11 +663,9 @@ function openTaskModal(task = null) {
 }
 
 function deleteTask(task) {
-  const confirmed = window.confirm(
-    `Delete "${task.title}"? This cannot be undone.`,
-  );
-  if (!confirmed) return;
-  tasks = tasks.filter((item) => item.id !== task.id);
+  const ok = window.confirm(`Delete "${task.title}"? This cannot be undone.`);
+  if (!ok) return;
+  tasks = tasks.filter((item) => item !== task);
   saveTasks();
   renderTasks();
   announce("Task removed.");
@@ -882,6 +881,7 @@ $("#text-larger").addEventListener("click", () =>
   applyTextScale((settings.textScale || 1) + 0.1),
 );
 $("#text-reset").addEventListener("click", () => applyTextScale(1));
+/* ===== Multi-select delete (per column) ===== */
 const COLUMN_LABELS = {
   todo: "To do",
   progress: "In progress",
@@ -899,10 +899,10 @@ const selectedIds = {
 };
 
 function syncSelection(status) {
-  const column = document.querySelector(`.task-column[data-column="${status}]`);
   const list = document.getElementById(`list-${status}`);
   const bar = document.getElementById(`select-bar-${status}`);
-  if (!column || !list || !bar) return;
+  const toggle = document.getElementById(`select-toggle-${status}`);
+  if (!list || !bar || !toggle) return;
   const cards = [...list.querySelectorAll(".task-card")];
   const visible = new Set(cards.map((card) => card.dataset.taskId));
   [...selectedIds[status]].forEach((id) => {
@@ -935,7 +935,6 @@ function syncSelection(status) {
   del.textContent = count ? `Delete ${count}` : "Delete";
   bar.querySelector(".select-all-box").checked =
     cards.length > 0 && count === cards.length;
-  const toggle = column.querySelector(".select-toggle");
   toggle.textContent = selectMode[status] ? "Done" : "Select";
   toggle.setAttribute("aria-pressed", String(selectMode[status]));
 }
@@ -945,63 +944,103 @@ Object.keys(COLUMN_LABELS).forEach((status) => {
     `.task-column[data-column="${status}"]`,
   );
   const list = document.getElementById(`list-${status}`);
-  if (!column || !list) return;
-  const head = column.querySelector("column-head");
-
+  const head = column ? column.querySelector(".column-head") : null;
+  if (!column || !list || !head) return;
+  column
+    .querySelectorAll(".select-toggle, .select-bar")
+    .forEach((el) => el.remove());
   head.insertAdjacentHTML(
     "beforeend",
-    `<button type="button" class="select-toggle">Select</button>`,
+    `<button type="button" class="select-toggle" id="select-toggle-${status}" data-status="${status}" aria-pressed="false">Select</button>`,
   );
-  const toggle = head.querySelector(".select-toggle");
-
   head.insertAdjacentHTML(
     "afterend",
-    `<div class="select-bar" id="select-bar-${status}" hidden><label class="select-all"><input type="checkbox" class="select-all-box">All</label><span class="select-count">0 selected</span><button type="button" class="select-delete" disabled>Delete</button></div>`,
+    `<div class="select-bar" id="select-bar-${status}" hidden><label class="select-all"><input type="checkbox" class="select-all-box" data-status="${status}">All</label><span class="select-count">0 selected</span><button type="button" class="select-delete" data-status="${status}" disabled>Delete</button></div>`,
   );
-  const bar = document.getElementById(`select-bar-${status}`);
+  new MutationObserver(() => syncSelection(status)).observe(list, {
+    childList: true,
+  });
+});
 
-  toggle.addEventListener("click", () => {
+document.addEventListener("click", (event) => {
+  const toggle = event.target.closest(".select-toggle");
+  if (toggle) {
+    const status = toggle.dataset.status;
     selectMode[status] = !selectMode[status];
     selectedIds[status].clear();
     syncSelection(status);
-  });
-  bar.querySelector(".select-all-box").addEventListener("change", (event) => {
-    selectedIds[status].clear();
-    if (event.target.checked) {
-      list
-        .querySelectorAll(".task-card")
-        .forEach((card) => selectedIds[status].add(card.dataset.taskId));
-    }
-    syncSelection(status);
-  });
-  list.addEventListener("click", (event) => {
-    if (!selectMode[status]) return;
-    const card = event.target.closest(".task-card");
-    if (!card) return;
-    const id = card.dataset.taskId;
-    if (selectedIds[status].has(id)) selectedIds[status].delete(id);
-    else selectedIds[status].add(id);
-    syncSelection(status);
-  });
-  bar.querySelector(".select-delete").addEventListener("click", () => {
+    return;
+  }
+  const del = event.target.closest(".select-delete");
+  if (del) {
+    const status = del.dataset.status;
     const ids = selectedIds[status];
     const total = ids.size;
     if (!total) return;
+    const matching = tasks.filter((task) => ids.has(String(task.id))).length;
+    if (matching !== total) {
+      window.alert(
+        "Some tasks share the same ID, so deleting now could remove extra tasks.They have been repaired. Please select again.",
+      );
+      ensureUniqueIds();
+      selectedIds[status].clear();
+      renderTasks();
+      return;
+    }
     const ok = window.confirm(
       `Delete ${total} ${total === 1 ? "task" : "tasks"} from "${COLUMN_LABELS[status]}"?\n\nThis action can't be undone.`,
     );
     if (!ok) return;
-    tasks = tasks.filter((task) => !ids.has(task.id));
+    const doomed = tasks.filter(
+      (task) => task.status === status && ids.has(String(task.id)),
+    );
+    if (doomed.length != total) {
+      window.alert("Something doesn't match, so nothing was deleted.");
+      return;
+    }
+    tasks = tasks.filter((task) => !doomed.includes(task));
     ids.clear();
     selectMode[status] = false;
     saveTasks();
     renderTasks();
     announce(`${total} ${total === 1 ? "task" : "tasks"} deleted.`);
-  });
-  new MutationObserver(() => syncSelection(status)).observe(list, {
-    childList: true,
-  });
+    return;
+  }
+  const card = event.target.closest(".task-card");
+  const list = card ? card.closest(".task-list.selecting") : null;
+  if (!list || event.target.closest(".task-menu")) return;
+  const status = list.id.replace("list-", "");
+  const id = card.dataset.taskId;
+  if (selectedIds[status].has(id)) selectedIds[status].delete(id);
+  else selectedIds[status].add(id);
+  syncSelection(status);
 });
+
+document.addEventListener("change", (event) => {
+  const allBox = event.target.closest(".select-all-box");
+  if (!allBox) return;
+  const status = allBox.dataset.status;
+  selectedIds[status].clear();
+  if (allBox.checked) {
+    document
+      .querySelectorAll(`#list-${status} .task-card`)
+      .forEach((card) => selectedIds[status].add(card.dataset.taskId));
+  }
+  syncSelection(status);
+});
+function ensureUniqueIds() {
+  const seen = new Set();
+  let changed = false;
+  tasks.forEach((task) => {
+    if (!task.id || seen.has(String(task.id))) {
+      task.id = `t-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+      changed = true;
+    }
+    seen.add(String(task.id));
+  });
+  if (changed) saveTasks();
+}
+ensureUniqueIds();
 updateGreeting();
 applyTheme(settings.theme);
 applyTextScale(Number(settings.textScale) || 1);

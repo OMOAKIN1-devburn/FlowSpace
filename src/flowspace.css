@@ -1466,8 +1466,43 @@ h1 {
   outline-offset: -2px;
 }
 .task-list.selecting .check-task,
-.task-list.selecting .task-menu,
 .task-list.selecting .task-move {
   pointer-events: none;
   opacity: 0.4;
+}
+
+.sidebar {
+  overflow-y: auto;
+}
+.sidebar-spacer {
+  flex: 1 1 auto;
+  min-height: 8px;
+}
+.profile {
+  flex-shrink: 0;
+  position: sticky;
+  bottom: 0;
+  background: var(--navy);
+  padding-bottom: 6px;
+}
+.nav-link {
+  color: #d9d6ea;
+}
+.workspace-label {
+  color: #b3afcb;
+}
+.sidebar-note p,
+.profile-copy span {
+  color: #c9c5dd;
+}
+@media (max-height: 860px) {
+  .sidebar {
+    padding: 18px 14px;
+  }
+  .brand {
+    margin-bottom: 22px;
+  }
+  .sidebar-note {
+    display: none;
+  }
 }
