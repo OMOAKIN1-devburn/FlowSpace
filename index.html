@@ -16,7 +16,7 @@
     />
     <meta property="og:title" content="FlowSpace - make room for your day" />
     <meta
-      property="og;description"
+      property="og:description"
       content="A thoughtful home for your plans, focus time, and daily wins."
     />
     <title>FlowSpace - make room for your day</title>
@@ -176,6 +176,8 @@
                   ><i class="fa-solid fa-rotate" aria-hidden="true"></i>
                 </span>
               </div>
+              <div class="stat-number" id="stat-progress">0</div>
+              <div class="stat-foot">one step at a time</div>
             </article>
 
             <article class="stat-card">
@@ -258,11 +260,12 @@
                 >
                   <div class="column-head">
                     <span class="column-dot"></span
-                    ><strong id="todo-hearing">To do</strong
+                    ><strong id="todo-heading">To do</strong
                     ><span class="column-count" id="count-todo">0</span>
                   </div>
                   <div class="task-list" id="list-todo"></div>
                 </section>
+
                 <section
                   class="task-column column-progress"
                   data-column="progress"
@@ -277,14 +280,14 @@
                 </section>
 
                 <section
-                  class="task-column scolumn-done"
+                  class="task-column column-done"
                   data-column="completed"
                   aria-labelledby="done-heading"
                 >
-                  <div class="colmn-head">
+                  <div class="column-head">
                     <span class="column-dot"></span
                     ><strong id="done-heading">Completed</strong
-                    ><span class="column-count" id="count-comleted">0</span>
+                    ><span class="column-count" id="count-completed">0</span>
                   </div>
                   <div class="task-list" id="list-completed"></div>
                 </section>
@@ -445,12 +448,46 @@
                       ><i style="background: #3a2442"></i
                       ><i style="background: #e87967"></i
                       ><i style="background: #f3a34d"></i
-                      ><i style="background: A9C884"></i> </span
+                      ><i style="background: #a9c884"></i> </span
                     >Sunset Glow
                   </button>
                 </div>
                 <p class="theme-footnote">
                   A softer backdrop for whatever kind of day you're having.
+                </p>
+              </section>
+              <section
+                class="widget"
+                id="text-size-widget"
+                aria-labelledby="textsize-title"
+              >
+                <div class="widget-header">
+                  <h3 id="textsize-title">Text size</h3>
+                  <span id="text-size-label">100%</span>
+                </div>
+                <div class="size-row">
+                  <button
+                    class="size-button"
+                    id="text-smaller"
+                    type="button"
+                    aria-label="Make text smaller"
+                  >
+                    A-
+                  </button>
+                  <button class="size-button" id="text-reset" type="button">
+                    Reset
+                  </button>
+                  <button
+                    class="size-button"
+                    id="text-larger"
+                    type="button"
+                    aria-label="Make text larger"
+                  >
+                    A+
+                  </button>
+                </div>
+                <p class="theme-footnote">
+                  Makes small text easier to read. Saved on this device.
                 </p>
               </section>
             </aside>
