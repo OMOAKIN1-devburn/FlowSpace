@@ -2,7 +2,8 @@
 
 Flowspace is a personal productivity dashboard for keeping everyday plans organized. encouraging, and colorful
 
-. Live Demo: https://omoakin1-devburn.github.io/FlowSpace/
+. Live Demo: https://omoakin1-devburn.github.io/FlowSpace
+
 . Repository: https://github.com/OMOAKIN1-devburn/FlowSpace
 
 
