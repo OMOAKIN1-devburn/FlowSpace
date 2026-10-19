@@ -41,6 +41,3 @@ deploy:
   steps:
     - id: deployment
       uses: actions/deploy-pages@v4
-    cache: npm
-- run: npm ci
-- run: npm run build
