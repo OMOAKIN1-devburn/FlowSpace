@@ -1041,10 +1041,345 @@ function ensureUniqueIds() {
   if (changed) saveTasks();
 }
 ensureUniqueIds();
+/* ===== Alarm sounds (timer and reminders) ===== */
+const ALARM_SECONDS = 10;
+const ALARM_GAP = {
+  timer: 1600,
+  reminder: 1300,
+};
+let audioCtx = null;
+let alarmBeat = null;
+let alarmStop = null;
+
+function unlockAudio() {
+  try {
+    if (!audioCtx) audioCtx = new AudioContext();
+    if (audioCtx.state === "suspended") audioCtx.resume();
+  } catch (error) {
+    /* sound is optional */
+  }
+}
+document.addEventListener("pointerdown", unlockAudio);
+document.addEventListener("keydown", unlockAudio);
+
+function tone(freq, start, length, type, volume) {
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = type;
+  osc.frequency.value = freq;
+  gain.gain.setValueAtTime(0.0001, start);
+  gain.gain.exponentialRampToValueAtTime(volume, start + 0.02);
+  gain.gain.exponentialRampToValueAtTime(0.0001, start + length);
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start(start);
+  osc.stop(start + length + 0.05);
+}
+
+const ALARM_SOUNDS = {
+  timer(t) {
+    tone(784, t, 1.2, "sine", 0.35);
+    tone(1568, t, 0.8, "sine", 0.12);
+  },
+  reminder(t) {
+    tone(988, t, 0.16, "triangle", 0.3);
+    tone(1175, t + 0.2, 0.16, "triangle", 0.3);
+    tone(988, t + 0.4, 0.16, "triangle", 0.3);
+  },
+};
+
+function stopAlarm() {
+  clearInterval(alarmBeat);
+  clearTimeout(alarmStop);
+  alarmBeat = null;
+  alarmStop = null;
+  const banner = document.getElementById("alarm-banner");
+  if (banner) banner.hidden = true;
+}
+
+function showAlarmBanner(message) {
+  let banner = document.getElementById("alarm-banner");
+  if (!banner) {
+    document.body.insertAdjacentHTML(
+      "beforeend",
+      `<div id="alarm-banner" class="alarm-banner" role="alert" hidden><i class="fa-sound fa-bell" aria-hidden="true"></i><span id="alarm-text"></span><button type="button" id="alarm-stop">Stop</button></div>`,
+    );
+    banner = document.getElementById("alarm-banner");
+    document.getElementById("alarm-stop").addEventListener("click", stopAlarm);
+  }
+  document.getElementById("alarm-text").textContent = message;
+  banner.hidden = false;
+}
+
+function startAlarm(kind, message) {
+  stopAlarm();
+  showAlarmBanner(message);
+  if (settings.alarmSound !== false) {
+    unlockAudio();
+    if (audioCtx) {
+      const beat = () => ALARM_SOUNDS[kind](audioCtx.currentTime + 0.05);
+      beat();
+      alarmBeat = setInterval(beat, ALARM_GAP[kind]);
+    }
+  }
+  alarmStop = setTimeout(stopAlarm, ALARM_SECONDS * 1000);
+}
+
+/* ===== Timer (focus and break, any length) ===== */
+const TIMER_KEY = "flowspace.timer.v1";
+const DEFAULT_SECONDS = {
+  focus: 1500,
+  break: 300,
+};
+const timerState = {
+  mode: "focus",
+  running: false,
+  endAt: 0,
+  remaining: 1500,
+};
+let timerTick = null;
+const baseTitle = document.title;
+
+function configuredSeconds(mode) {
+  const value = Number(
+    settings[mode === "focus" ? "timerFocusSec" : "timerBreakSec"],
+  );
+  return value > 0 ? value : DEFAULT_SECONDS[mode];
+}
+function saveTimerState() {
+  try {
+    localStorage.setItem(TIMER_KEY, JSON.stringify(timerState));
+  } catch (error) {
+    /* ignore */
+  }
+}
+function formatClock(total) {
+  const h = Math.floor(total / 3600);
+  const m = String(Math.floor((total % 3600) / 60)).padStart(2, "0");
+  const s = String(total % 60).padStart(2, "0");
+  return h > 0 ? `${h}:${m}:${s}` : `${m}:${s}`;
+}
+function readFields() {
+  const h = Math.max(
+    0,
+    Math.min(23, parseInt($("#timer-hours").value, 10) || 0),
+  );
+  const m = Math.max(
+    0,
+    Math.min(59, parseInt($("#timer-minutes").value, 10) || 0),
+  );
+  const s = Math.max(
+    0,
+    Math.min(59, parseInt($("#timer-seconds").value, 10) || 0),
+  );
+  return h * 3600 + m * 60 + s;
+}
+function loadFields(mode) {
+  const total = configuredSeconds(mode);
+  $("#timer-hours").value = Math.floor(total / 3600);
+  $("#timer-minutes").value = Math.floor((total % 3600) / 60);
+  $("#timer-seconds").value = total % 60;
+  $("#timer-recommended").textContent = mode === "focus" ? "25 min" : "5 min";
+}
+
+function paintFlowTimer() {
+  const clock = formatClock(timerState.remaining);
+  const untouched =
+    !timerState.running &&
+    timerState.remaining === configuredSeconds(timerState.mode);
+  const label = timerState.mode === "focus" ? "focus" : "break";
+  $("#timer-display").textContent = clock;
+  $("#timer-toggle").innerHTML = timerState.running
+    ? `<i class="fa-solid fa-pause" aria-hidden="true"></i>Pause`
+    : `<i class="fa-solid fa-play" aria-hidden="true"></i> ${untouched ? `Start ${label}` : "Resume"}`;
+  $("#timer-caption").textContent =
+    timerState.mode === "focus"
+      ? timerState.running
+        ? "Stay with this one thing."
+        : "One thing at a time. You've got this."
+      : "A few quiet minutes to reset.";
+  $$(".mode-button").forEach((button) => {
+    const selected = button.dataset.mode === timerState.mode;
+    button.classList.toggle("active", selected);
+    button.setAttribute("aria-pressed", String(selected));
+  });
+  ["timer-hours", "timer-minutes", "timer-seconds"].forEach((id) => {
+    document.getElementById(id).disabled = timerState.running;
+  });
+  document.title = timerState.running ? `${clock} . ${baseTitle}` : baseTitle;
+}
+
+function applyDuration(total) {
+  if (!(total > 0)) return;
+  settings[timerState.mode === "focus" ? "timerFocusSec" : "timerBreakSec"] =
+    total;
+  saveSettings();
+  timerState.remaining = total;
+  saveTimerState();
+  paintFlowTimer();
+}
+
+function startFlowTimer() {
+  unlockAudio();
+  stopAlarm();
+  if (timerState.remaining <= 0)
+    timerState.remaining = configuredSeconds(timerState.mode);
+  timerState.running = true;
+  timerState.endAt = Date.now() + timerState.remaining * 1000;
+  saveTimerState();
+  clearInterval(timerTick);
+  timerTick = setInterval(tickFlowTimer, 250);
+  paintFlowTimer();
+}
+function pauseFlowTimer() {
+  timerState.remaining = Math.max(
+    0,
+    Math.ceil((timerState.endAt - Date.now()) / 1000),
+  );
+  timerState.running = false;
+  clearInterval(timerTick);
+  timerTick = null;
+  saveTimerState();
+  paintFlowTimer();
+}
+function resetFlowTimer() {
+  clearInterval(timerTick);
+  timerTick = null;
+  timerState.running = false;
+  timerState.remaining = configuredSeconds(timerState.mode);
+  saveTimerState();
+  stopAlarm();
+  paintFlowTimer();
+  announce("Timer reset.");
+}
+function tickFlowTimer() {
+  const left = Math.max(0, Math.ceil((timerState.endAt - Date.now()) / 1000));
+  timerState.remaining = left;
+  if (left <= 0) {
+    finishFlowTimer();
+    return;
+  }
+  paintFlowTimer();
+}
+function finishFlowTimer() {
+  clearInterval(timerTick);
+  timerTick = null;
+  const finished = timerState.mode;
+  timerState.running = false;
+  if (finished === "focus") {
+    const key = dateKey(new Date());
+    activity[key] =
+      (Number(activity[key]) || 0) +
+      Math.round(configuredSeconds("focus") / 60);
+    saveActivity();
+  }
+  timerState.mode = finished === "focus" ? "break" : "focus";
+  timerState.remaining = configuredSeconds(timerState.mode);
+  saveTimerState();
+  loadFields(timerState.mode);
+  paintFlowTimer();
+  if (typeof updateStats === "function") updateStats();
+  startAlarm(
+    "timer",
+    finished === "focus"
+      ? "Focus time is up. Take a break!"
+      : "Break is over. Ready to focus?",
+  );
+}
+function setFlowMode(mode) {
+  if (timerState.mode === mode) return;
+  if (timerState.running) {
+    announce("A timer is running. Pause or reset it before switching.");
+    return;
+  }
+  timerState.mode = mode;
+  timerState.remaining = configuredSeconds(mode);
+  saveTimerState();
+  loadFields(mode);
+  paintFlowTimer();
+}
+
+function freshButton(selector) {
+  const old = $(selector);
+  const clone = old.cloneNode(true);
+  old.replaceWith(clone);
+  return clone;
+}
+freshButton("#timer-toggle").addEventListener("click", () =>
+  timerState.running ? pauseFlowTimer() : startFlowTimer(),
+);
+freshButton("#timer-reset").addEventListener("click", resetFlowTimer);
+$$(".mode-button").forEach((button) => {
+  const fresh = button.cloneNode(true);
+  button.replaceWith(fresh);
+  fresh.addEventListener("click", () => setFlowMode(fresh.dataset.mode));
+});
+freshButton("#focus-shortcut").addEventListener("click", () => {
+  $("#focus").scrollIntoView({
+    behavior: "smooth",
+    block: "center",
+  });
+  setFlowMode("focus");
+  if (timerState.mode === "focus" && !timerState.running) startFlowTimer();
+});
+["timer-hours", "timer-minutes", "timer-seconds"].forEach((id) => {
+  const input = document.getElementById(id);
+  input.addEventListener("input", () => {
+    if (!timerState.running) applyDuration(readFields());
+  });
+  input.addEventListener("change", () => loadFields(timerState.mode));
+});
+$("#timer-recommended").addEventListener("click", () => {
+  if (timerState.running) return;
+  applyDuration(DEFAULT_SECONDS[timerState.mode]);
+  loadFields(timerState.mode);
+});
+const soundBox = $("#alarm-sound");
+soundBox.checked = settings.alarmSecond !== false;
+soundBox.addEventListener("change", () => {
+  settings.alarmSound = soundBox.checked;
+  saveSettings();
+});
+$("#test-timer-bell").addEventListener("click", () =>
+  startAlarm("timer", "Timer bell test"),
+);
+$("#test-reminder-bell").addEventListener("click", () =>
+  startAlarm("reminder", "Reminder bell test"),
+);
+
+(function initFlowTimer() {
+  let saved = null;
+  try {
+    saved = JSON.parse(localStorage.getItem(TIMER_KEY));
+  } catch (error) {
+    saved = null;
+  }
+  timerState.mode = saved && saved.mode === "break" ? "break" : "focus";
+  timerState.remaining = configuredSeconds(timerState.mode);
+  if (saved) {
+    if (saved.running && saved.endAt > Date.now()) {
+      timerState.running = true;
+      timerState.endAt = saved.endAt;
+      timerState.remaining = Math.ceil((saved.endAt - Date.now()) / 1000);
+      timerTick = setInterval(tickFlowTimer, 250);
+    } else if (saved.running) {
+      timerState.mode = timerState.mode === "focus" ? "break" : "focus";
+      timerState.remaining = configuredSeconds(timerState.mode);
+      announce("Your timer finished while you were away.");
+    } else if (Number(saved.remaining) > 0) {
+      timerState.remaining = Math.min(
+        Number(saved.remaining),
+        configuredSeconds(timerState.mode),
+      );
+    }
+  }
+  loadFields(timerState.mode);
+  paintFlowTimer();
+})();
+
 updateGreeting();
 applyTheme(settings.theme);
 applyTextScale(Number(settings.textScale) || 1);
-paintTimer();
 renderTasks();
 
 function checkReminders() {
@@ -1058,6 +1393,7 @@ function checkReminders() {
     task.reminded = true;
     changed = true;
     if (now - stamp > 2 * 3600000) return;
+    startAlarm("reminder", `Reminder: ${task.title}`);
     const when =
       Number(task.remind) === 0
         ? "is due now"

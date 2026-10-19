@@ -350,6 +350,67 @@
                     ></i>
                   </button>
                 </div>
+
+                <div class="timer-setup">
+                  <div
+                    class="timer-fields"
+                    role="group"
+                    aria-label="Timer length"
+                  >
+                    <label
+                      >Hours<input
+                        type="number"
+                        id="timer-hours"
+                        min="0"
+                        max="23"
+                        value="0"
+                        inputmode="numeric"
+                      />
+                    </label>
+                    <label
+                      >Min<input
+                        type="number"
+                        id="timer-minutes"
+                        min="0"
+                        max="59"
+                        value="25"
+                        inputmode="numeric"
+                      />
+                    </label>
+                    <label
+                      >Sec<input
+                        type="number"
+                        id="timer-seconds"
+                        min="0"
+                        max="59"
+                        value="0"
+                        inputmode="numeric"
+                      />
+                    </label>
+                  </div>
+                  <p class="timer-hint">
+                    Recommended:
+                    <button
+                      type="button"
+                      id="timer-recommended"
+                      class="link-button"
+                    >
+                      25 min
+                    </button>
+                  </p>
+                  <label class="sound-row"
+                    ><input type="checkbox" id="alarm-sound" checked />Alarm
+                    sound
+                  </label>
+                  <div class="test-row">
+                    <button type="button" id="test-timer-bell">
+                      Test timer bell
+                    </button>
+                    <button type="button" id="test-reminder-bell">
+                      Test reminder bell
+                    </button>
+                  </div>
+                </div>
               </section>
 
               <section class="widget" aria-labelledby="goal-title">
