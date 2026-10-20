@@ -1607,3 +1607,28 @@ h1 {
   color: #fff;
   font-weight: 700;
 }
+.filter-select {
+  height: auto;
+  min-height: 34px;
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
+.search-wrap input {
+  height: auto;
+  min-height: 38px;
+}
+.form-field input,
+.form-field select {
+  height: auto;
+  min-height: 39px;
+}
+.column-count {
+  height: auto;
+  min-height: 20px;
+}
+.goal-adjust button {
+  width: auto;
+  min-width: 24px;
+  height: auto;
+  min-height: 24px;
+}

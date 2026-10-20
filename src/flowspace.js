@@ -867,7 +867,7 @@ $("#profile-button").addEventListener("click", () =>
   announce("You're in your personal workspace, Alex."),
 );
 function applyTextScale(value) {
-  const scale = Math.max(0.7, Math.min(1.5, Math.round(value * 10) / 10));
+  const scale = Math.max(0.7, Math.min(2, Math.round(value * 10) / 10));
   settings.textScale = scale;
   document.documentElement.style.setProperty("--text-scale", scale);
   const label = $("#text-size-label");
@@ -1055,14 +1055,16 @@ function unlockAudio() {
   try {
     if (!audioCtx) audioCtx = new AudioContext();
     if (audioCtx.state === "suspended") audioCtx.resume();
+    if (audioCtx.state === "running")
+      document.removeEventListener("click", unlockAudio, true);
   } catch (error) {
     /* sound is optional */
   }
 }
-document.addEventListener("pointerdown", unlockAudio);
-document.addEventListener("keydown", unlockAudio);
+document.addEventListener("click", unlockAudio, true);
 
 function tone(freq, start, length, type, volume) {
+  if (!audioCtx) return;
   const osc = audioCtx.createOscillator();
   const gain = audioCtx.createGain();
   osc.type = type;
