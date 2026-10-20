@@ -1,5 +1,3 @@
-@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap");
-
 :root {
   --navy: #17152b;
   --violet: #7655f6;
@@ -90,7 +88,7 @@ button {
   color: white;
 }
 .brand-mark i {
-  font-size: 15px;
+  font-size: calc(15px * var(--text-scale));
 }
 
 .workspace-label {
@@ -128,7 +126,7 @@ button {
 .nav-link i {
   width: 17px;
   text-align: center;
-  font-size: 14px;
+  font-size: calc(14px * var(--text-scale));
 }
 .nav-link:hover {
   color: white;
@@ -256,11 +254,6 @@ button {
   place-items: center;
   transition: all 0.2s;
 }
-.icon-button:hover {
-  color: var(--violet);
-  border-color: #d9d1ff;
-  transform: translateY(-1px);
-}
 
 .search-wrap {
   position: relative;
@@ -348,28 +341,16 @@ h1 {
     background 0.2s,
     box-shadow 0.2s;
 }
-.button:hover {
-  transform: translateY(-2px);
-}
 .button-primary {
   color: white;
   background: var(--violet);
   box-shadow: 0 7px 16px #7655f633;
-}
-.button-primary:hover {
-  background: #6543ed;
-  box-shadow: 0 10px 22px #7655f644;
 }
 .button-soft {
   color: #625c78;
   background: var(--surface);
   border: 1px solid var(--line);
 }
-.button-soft:hover {
-  border-color: #d6cefb;
-  background: #faf9ff;
-}
-
 .button i {
   font-size: calc(14px * var(--text-scale));
 }
@@ -482,7 +463,7 @@ h1 {
   border: 1px solid var(--line);
   border-radius: 10px;
   color: #79758a;
-  background-color: white;
+  background-color: var(--surface);
   font-size: calc(14px * var(--text-scale));
 }
 .toolbar-spacer {
@@ -567,16 +548,13 @@ h1 {
   margin-top: 1px;
   border: 1.5px solid #d4d0de;
   border-radius: 50%;
-  background: white;
+  background: var(--surface);
   color: white;
   padding: 0;
   display: grid;
   place-items: center;
-  font-size: 8px;
+  font-size: calc(8px * var(--text-scale));
   transition: all 0.2s;
-}
-.check-task:hover {
-  border-color: var(--violet);
 }
 .task-card[data-status="completed"] .check-task {
   background: var(--mint);
@@ -653,9 +631,6 @@ h1 {
   font-size: calc(14px * var(--text-scale));
   font-weight: 700;
 }
-.task-move:hover {
-  color: var(--violet);
-}
 .task-move i {
   margin-right: 3px;
   font-size: calc(14px * var(--text-scale));
@@ -674,7 +649,7 @@ h1 {
 }
 .empty-column i {
   display: block;
-  font-size: 15px;
+  font-size: calc(15px * var(--text-scale));
   margin-bottom: 7px;
   color: #c5cace;
 }
@@ -823,7 +798,7 @@ h1 {
   position: absolute;
   inset: 5px;
   border-radius: 50%;
-  background: white;
+  background: var(--surface);
 }
 .goal-ring strong {
   position: relative;
@@ -854,17 +829,17 @@ h1 {
   align-items: center;
 }
 .goal-adjust button {
-  width: 24px;
-  height: 24px;
+  width: calc(24px * var(--text-scale));
+  height: calc(24px * var(--text-scale));
+  padding: 0;
+  line-height: 1;
+  display: grid;
+  place-items: center;
   border: 1px solid var(--line);
   border-radius: 7px;
-  background: white;
+  background: var(--surface);
   color: #77738a;
   font-size: calc(15px * var(--text-scale));
-}
-.goal-adjust button:hover {
-  color: var(--violet);
-  border-color: #d9d1ff;
 }
 
 .activity-bars {
@@ -949,9 +924,6 @@ h1 {
     border 0.2s,
     background 0.2s;
 }
-.theme-option:hover {
-  background: #f5f2ff;
-}
 .theme-option[aria-presses="true"] {
   border-color: #cfc4ff;
   background: #f6f3ff;
@@ -1029,7 +1001,7 @@ h1 {
   height: 30px;
   border: 1px solid var(--line);
   border-radius: 9px;
-  background: white;
+  background: var(--surface);
   color: #807bbc;
 }
 
@@ -1060,7 +1032,7 @@ h1 {
   height: 39px;
   border: 1px solid #e5e1eb;
   border-radius: 10px;
-  background: white;
+  background: var(--surface);
   padding: 0 11px;
 
   color: var(--ink);
@@ -1123,9 +1095,6 @@ h1 {
 }
 .mobile-nav-modal .nav-link {
   color: #5f5b70;
-}
-.mobile-nav-modal .nav-link:hover {
-  background: #f3f0fb;
 }
 .mobile-nav-modal .nav-link.active {
   background: var(--violet);
@@ -1244,7 +1213,7 @@ h1 {
     padding: 13px 0;
   }
   .nav-link i {
-    font-size: 16px;
+    font-size: calc(16px * var(--text-scale));
   }
   .profile {
     padding: 13px 0 0;
@@ -1315,7 +1284,7 @@ h1 {
     padding: 13px;
   }
   .stat-number {
-    font-size: 23px;
+    font-size: calc(23px * var(--text-scale));
   }
   .dashboard-grid {
     gap: 15px;
@@ -1336,11 +1305,7 @@ h1 {
     background: var(--surface);
     color: var(--ink);
     font-weight: 700;
-    font-size: 16px;
-  }
-  .size-button:hover {
-    color: var(--violet);
-    border-color: var(--violet);
+    font-size: calc(16px * var(--text-scale));
   }
   .board-columns {
     grid-template-columns: 1fr;
@@ -1366,7 +1331,7 @@ h1 {
     align-items: flex-start;
   }
   .section-heading h2 {
-    font-size: 15px;
+    font-size: calc(15px * var(--text-scale));
   }
   .form-grid {
     grid-template-columns: 1fr;
@@ -1394,21 +1359,31 @@ h1 {
   margin-left: 8px;
   height: 32px;
   padding: 0 12px;
-  border: 1px solid var(--line);
+  border: 1.5px solid color-mix(in srgb, var(--violet) 55%, var(--surface));
   border-radius: 8px;
-  background: var(--surface);
-  color: var(--ink);
+  background: color-mix(in srgb, var(--violet) 12%, var(--surface));
+  color: var(--violet);
   font-weight: 700;
   font-size: calc(14px * var(--text-scale));
-}
-.select-toggle:hover {
-  color: var(--violet);
-  border-color: var(--violet);
+  transition:
+    background-color 0.2s,
+    color 0.2s,
+    border-color 0.2s,
+    transform 0.15s;
 }
 .select-toggle[aria-pressed="true"] {
   background: var(--violet);
   border-color: var(--violet);
   color: #fff;
+}
+.select-toggle:active {
+  transform: scale(0.96);
+}
+@media (hover: hover) and (pointer: fine) {
+  .select-toggle:not([aria-pressed="true"]):hover {
+    background: color-mix(in srgb, var(--violet) 22%, var(--surface));
+    border-color: var(--violet);
+  }
 }
 .select-bar {
   display: flex;
@@ -1626,9 +1601,216 @@ h1 {
   height: auto;
   min-height: 20px;
 }
-.goal-adjust button {
-  width: auto;
-  min-width: 24px;
-  height: auto;
-  min-height: 24px;
+/* Tap feedback: no grey flash on mobile */
+button,
+.nav-link {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Hover: only on devices with a real pointer */
+@media (hover: hover) and (pointer: fine) {
+  .nav-link:not(.active):hover {
+    color: white;
+    background: #ffffff14;
+    transform: translateX(2px);
+  }
+  .icon-button:hover {
+    color: var(--violet);
+    border-color: color-mix(in srgb, var(--violet) 35%, var(--surface));
+    background: color-mix(in srgb, var(--violet) 8%, var(--surface));
+    transform: translateY(-1px);
+  }
+  .button:hover {
+    transform: translateY(-2px);
+  }
+  .button-primary:hover {
+    background: color-mix(in srgb, var(--violet), black 12%);
+    box-shadow: 0 10px 22px color-mix(in srgb, var(--violet) 30%, transparent);
+  }
+  .button-soft:hover {
+    color: var(--violet);
+    border-color: color-mix(in srgb, var(--violet) 35%, var(--surface));
+    background: color-mix(in srgb, var(--violet) 8%, var(--surface));
+  }
+  .check-task:hover {
+    border-color: var(--violet);
+  }
+  .task-move:hover {
+    color: var(--violet);
+  }
+  .goal-adjust button:hover {
+    color: var(--violet);
+    border-color: #d9d1ff;
+  }
+  .size-button:hover {
+    color: var(--violet);
+    border-color: color-mix(in srgb, var(--violet) 35%, var(--surface));
+    background: color-mix(in srgb, var(--violet) 8%, var(--surface));
+  }
+  .theme-option:not([aria-presses="true"]):hover {
+    background: color-mix(in srgb, var(--violet) 10%, var(--surface));
+  }
+  .mobile-nav-modal .nav-link:not(.active):hover {
+    background: color-mix(in srgb, var(--violet) 10%, var(--surface));
+  }
+  .timer-start:hover {
+    background: color-mix(in srgb, var(--mint), white 18%);
+  }
+  .timer-reset:hover {
+    background: #ffffff26;
+    color: white;
+  }
+  .mode-button:not(.active):hover {
+    color: white;
+    background: #ffffff14;
+  }
+}
+
+/* Click: brief press state that always releases */
+.button:active,
+.icon-button:active,
+.goal-adjust button:active {
+  transform: translateY(0) scale(0.97);
+}
+.size-button:active {
+  transform: scale(0.96);
+  background: color-mix(in srgb, var(--violet) 16%, var(--surface));
+}
+.nav-link:not(.active):active {
+  background: #ffffff1f;
+}
+.theme-option:active {
+  background: color-mix(in srgb, var(--violet) 16%, var(--surface));
+}
+.mode-button:not(.active):active {
+  background: #ffffff1f;
+}
+.timer-start:active {
+  background: color-mix(in srgb, var(--mint), black 8%);
+}
+.timer-reset:active {
+  background: #ffffff33;
+}
+
+/* Smooth return to normal */
+.button,
+.icon-button,
+.nav-link,
+.theme-option,
+.mode-button,
+.check-task,
+.goal-adjust button,
+.task-move,
+.size-button {
+  transition:
+    background-color 0.2s,
+    color 0.2s,
+    border-color 0.2s,
+    box-shadow 0.2s,
+    transform 0.15s;
+}
+
+/* Menu scrolling: sidebar scrolls when the window is short */
+.sidebar {
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #ffffff30 transparent;
+}
+.sidebar > * {
+  flex-shrink: 0;
+}
+.sidebar-spacer {
+  min-height: 16px;
+}
+
+/* Theme recoloring: follow --violet */
+.nav-link.active {
+  background: var(--violet);
+  box-shadow: 0 7px 20px color-mix(in srgb, var(--violet) 30%, transparent);
+}
+.button-primary {
+  box-shadow: 0 7px 16px color-mix(in srgb, var(--violet) 30%, transparent);
+}
+.focus-widget:after {
+  background: color-mix(in srgb, var(--violet) 22%, transparent);
+}
+.tag.category {
+  background: color-mix(in srgb, var(--violet) 12%, var(--surface));
+  color: var(--violet);
+}
+.theme-option[aria-pressed="true"] {
+  border-color: color-mix(in srgb, var(--violet) 40%, var(--surface));
+  background: color-mix(in srgb, var(--violet) 10%, var(--surface));
+  color: var(--violet);
+}
+
+/* Midnight (dark) fixes */
+:root[data-theme="dark"] h1,
+:root[data-theme="dark"] .stat-number,
+:root[data-theme="dark"] .section-heading h2,
+:root[data-theme="dark"] .widget-header h3,
+:root[data-theme="dark"] .modal-heder h2,
+:root[data-theme="dark"] .goal-ring strong,
+:root[data-theme="dark"] .task-title,
+:root[data-theme="dark"] .goal-copy strong,
+:root[data-theme="dark"] .column-head strong,
+:root[data-theme="dark"] .form-field label,
+:root[data-theme="dark"] .activity-legend strong,
+:root[data-theme="dark"] .button-soft,
+:root[data-theme="dark"] .icon-button,
+:root[data-theme="dark"] .filter-select,
+:root[data-theme="dark"] .goal-adjust button,
+:root[data-theme="dark"] .size-button,
+:root[data-theme="dark"] .theme-option,
+:root[data-theme="dark"] .mobile-nav-modal .nav-link {
+  color: var(--ink);
+}
+:root[data-theme="dark"] .task-column {
+  background: color-mix(in srgb, var(--surface) 70%, var(--canvas));
+  border-color: var(--line);
+}
+:root[data-theme="dark"] .task-card {
+  border-color: var(--line);
+}
+:root[data-theme="dark"] .column-count,
+:root[data-theme="dark"] .tag {
+  background: var(--line);
+  color: var(--muted);
+}
+:root[data-theme="dark"] .tag.category {
+  background: color-mix(in srgb, var(--violet) 22%, var(--surface));
+  color: var(--violet);
+}
+:root[data-theme="dark"] .theme-option {
+  background: var(--canvas);
+}
+:root[data-theme="dark"] .goal-ring {
+  background: conic-gradient(var(--violet) var(--goal-pct, 0%), var(--line) 0%);
+}
+:root[data-theme="dark"] .goal-ring:before {
+  background: var(--surface);
+}
+.task-card {
+  cursor: grab;
+}
+.task-card:active {
+  cursor: grabbing;
+}
+.task-card.dragging {
+  opacity: 0.45;
+  transform: rotate(1.5deg) scale(0.98);
+}
+.task-column {
+  transition:
+    background-color 0.2s,
+    border-color 0.2s,
+    box-shadow 0.2s;
+}
+.task-column.drag-over,
+:root[data-theme="dark"] .task-column.drag-over {
+  border-color: var(--violet);
+  background: color-mix(in srgb, var(--violet) 10%, var(--surface));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--violet) 18%, transparent);
 }

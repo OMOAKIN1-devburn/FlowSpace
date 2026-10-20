@@ -2,6 +2,7 @@
 console.log("FlowSpace JS loaded");
 
 const TASKS_KEY = "flowspace-tasks.v1";
+const THEME_KEY = "flowspace.theme.v1";
 const SETTINGS_KEY = "flowspace.settings.v1";
 const ACTIVITY_KEY = "flowspace.activity.v1";
 const themes = {
@@ -49,6 +50,21 @@ const themes = {
     line: "#eee2dd",
     surface: "#ffffff",
     canvas: "#fbf5f1",
+  },
+  dark: {
+    navy: "#0e0d1a",
+    violet: "#8e73ff",
+    coral: "#ff7f96",
+    orange: "#ffb36b",
+    mint: "#64ddb5",
+    sky: "#70c8ff",
+    lavender: "#262240",
+    paper: "#1d1b2e",
+    ink: "#edeafb",
+    muted: "#a29fb8",
+    line: "#2e2b44",
+    surface: "#1a1829",
+    canvas: "#121120",
   },
 };
 const categoryNames = ["Personal", "Work", "Wellbeing", "Learning"];
@@ -208,12 +224,17 @@ function announce(message, ms = 2600) {
 function applyTheme(themeName) {
   const palette = themes[themeName] || themes.electric;
   const style = document.documentElement.style;
+  document.documentElement.dataset.theme = themeName;
+  style.colorScheme = themeName === "dark" ? "dark" : "light";
 
   Object.entries(palette).forEach(([key, value]) =>
     style.setProperty(`--${key}`, value),
   );
   settings.theme = themeName;
   saveSettings();
+  try {
+    localStorage.setItem(THEME_KEY, themeName);
+  } catch {}
   $$(".theme-option").forEach((button) => {
     const selected = button.dataset.theme === themeName;
     button.setAttribute("aria-pressed", String(selected));
@@ -343,7 +364,7 @@ function renderTasks() {
                 : status === "progress"
                   ? "Complete task"
                   : "Move back to to do";
-            return `<article class="task-card" data-status="${status}" data-task-id="${esc(task.id)}">
+            return `<article draggable="true" class="task-card" data-status="${status}" data-task-id="${esc(task.id)}">
       <div class="task-card-top">
       <button class="check-task" data-action="complete" data-id="${esc(task.id)}" aria-label="${status === "completed" ? "Move task back to to do" : "Mark task complete"}">${status === "completed" ? '<i class="fa-solid fa-check" aria-hidden="true"></i>' : ""}</button>
       <strong class="task-title">${esc(task.title)}</strong>
@@ -859,6 +880,53 @@ $$(".nav-link").forEach((button) =>
     });
   }),
 );
+function setupDragAndDrop() {
+  const board = $(".board-columns");
+  let draggedId = null;
+  const clear = () =>
+    $$(".dragging, .drag-over", board).forEach((el) =>
+      el.classList.remove("dragging", "drag-over"),
+    );
+
+  board.addEventListener("dragstart", (e) => {
+    const card = e.target.closest(".task-card");
+    if (!card) return;
+    draggedId = card.dataset.taskId;
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/plain", draggedId);
+    requestAnimationFrame(() => card.classList.add("dragging"));
+  });
+  board.addEventListener("dragend", () => {
+    draggedId = null;
+    clear();
+  });
+  board.addEventListener("dragover", (e) => {
+    const col = e.target.closest(".task-column");
+    if (!col || !draggedId) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    $$(".drag-over", board).forEach(
+      (el) => el !== col && el.classList.remove("drag-over"),
+    );
+    col.classList.add("drag-over");
+  });
+  board.addEventListener("dragleave", (e) => {
+    const col = e.target.closest(".task-column");
+    if (col && !col.contains(e.relatedTarget))
+      col.classList.remove("drag-over");
+  });
+  board.addEventListener("drop", (e) => {
+    const col = e.target.closest(".task-column");
+    if (!col || !draggedId) return;
+    e.preventDefault();
+    const task = tasks.find((t) => t.id === draggedId);
+    const status = col.dataset.column;
+    draggedId = null;
+    clear();
+    if (task && task.status !== status) setTaskStatus(task, status);
+  });
+}
+setupDragAndDrop();
 $("#mobile-menu").addEventListener("click", openMobileNav);
 $("#notifications-button").addEventListener("click", () =>
   announce("You're all caught up. Enjoy the quiet."),
@@ -1380,7 +1448,7 @@ $("#test-reminder-bell").addEventListener("click", () =>
 })();
 
 updateGreeting();
-applyTheme(settings.theme);
+applyTheme(localStorage.getItem(THEME_KEY) || settings.theme);
 applyTextScale(Number(settings.textScale) || 1);
 renderTasks();
 

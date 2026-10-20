@@ -21,8 +21,11 @@ Flowspace is a personal productivity dashboard designed to help you organise tas
 ## Technologies
 
 . HTML5 for the application structure.
+
 . CSS3 for the layout, responsive design, themes, and interface styling.
+
 . Vanilla JavaScript for task management, timers, reminders, text-scaling, progress tackling, and user interactions.
+
 .Browser local storage for saving tasks, preferences, goals, and focus activity.
 
 Font Awesome provides the icons, while DM Sans and Manrope provide the typography.
