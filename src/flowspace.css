@@ -1814,3 +1814,145 @@ button,
   background: color-mix(in srgb, var(--violet) 10%, var(--surface));
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--violet) 18%, transparent);
 }
+.welcome-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  overflow: auto;
+  background:
+    radial-gradient(
+      900px 500px at 15% 10%,
+      color-mix(in srgb, var(--violet) 55%, transparent),
+      transparent 60%
+    ),
+    radial-gradient(
+      700px 460px at 90% 90%,
+      color-mix(in srgb, var(--coral) 40%, transparent),
+      transparent 60%
+    ),
+    var(--navy);
+}
+.has-user .welcome-overlay {
+  display: none;
+}
+.welcome-card {
+  width: min(100%, 520px);
+  padding: clamp(24px, 5vw, 44px);
+  text-align: center;
+  border-radius: 24px;
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.35);
+  animation: modal-in 0.35s ease both;
+}
+.welcome-mark {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 18px;
+  border-radius: 18px;
+  display: grid;
+  place-items: center;
+  background: var(--violet);
+  color: #fff;
+  font-size: calc(22px * var(--text-scale));
+  box-shadow: 0 10px 24px color-mix(in srgb, var(--violet) 40%, transparent);
+}
+.welcome-eyebrow {
+  margin: 0 0 8px;
+  color: var(--violet);
+  font-weight: 700;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  font-size: calc(12px * var(--text-scale));
+}
+.welcome-card h2 {
+  margin: 0 0 10px;
+  font:
+    800 clamp(26px, 6vw, 38px)/1.15 Manrope,
+    sans-serif;
+  letter-spacing: -1px;
+  color: var(--ink);
+}
+.welcome-copy {
+  margin: 0 0 22px;
+  color: var(--muted);
+  font-size: calc(15px * var(--text-scale));
+}
+.welcome-input {
+  width: 100%;
+  height: 54px;
+  padding: 0 16px;
+  border-radius: 14px;
+  border: 1.5px solid var(--line);
+  background: var(--canvas);
+  color: var(--ink);
+  font-size: calc(17px * var(--text-scale));
+  text-align: center;
+}
+.welcome-input:focus {
+  outline: none;
+  border-color: var(--violet);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--violet) 20%, transparent);
+}
+.welcome-error {
+  min-height: 22px;
+  margin: 10px 0 8px;
+  color: color-mix(in srgb, var(--coral) 70%, var(--ink));
+  font-size: calc(14px * var(--text-scale));
+}
+.welcome-button {
+  width: 100%;
+  height: 54px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--violet);
+  color: #fff;
+  font-weight: 800;
+  font-size: calc(16px * var(--text-scale));
+  box-shadow: 0 10px 24px color-mix(in srgb, var(--violet) 35%, transparent);
+  transition:
+    transform 0.15s,
+    background-color 0.2s;
+}
+.welcome-button:active {
+  transform: scale(0.98);
+}
+.welcome-cancel {
+  margin-top: 12px;
+  padding: 8px;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font-weight: 600;
+  font-size: calc(14px * var(--text-scale));
+}
+.welcome-cancel[hidden] {
+  display: none;
+}
+.link-button {
+  display: block;
+  margin-top: 8px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--violet);
+  font-weight: 700;
+  font-size: calc(13px * var(--text-scale));
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+@media (hover: hover) and (pointer: fine) {
+  .welcome-button:hover {
+    background: color-mix(in srgb, var(--violet), black 12%);
+    transform: translateY(-2px);
+  }
+  .welcome-cancel:hover {
+    color: var(--ink);
+  }
+  .link-button:hover {
+    color: color-mix(in srgb, var(--violet), black 15%);
+  }
+}

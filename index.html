@@ -3,6 +3,26 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width" , initial-scale="1" />
+    <script>
+      (function () {
+        try {
+          var root = document.documentElement;
+          var s = JSON.parse(
+            localStorage.getItem("flowspace.settings.v1") || "{}",
+          );
+          var theme = localStorage.getItem("flowspace.theme.v1") || s.theme;
+          if (theme) root.dataset.theme = theme;
+          if (localStorage.getItem("flowspace.user.v1"))
+            root.classList.add("has-user");
+          if (theme === "dark") root.style.colorScheme = "dark";
+          if (s.textScale) root.style.setProperty("--text-scale", s.textScale);
+          var p = JSON.parse(
+            localStorage.getItem("flowspace.palette.v1") || "null",
+          );
+          if (p) for (var k in p) root.style.setProperty("--" + k, p[k]);
+        } catch (e) {}
+      })();
+    </script>
     <meta name="theme-color" content="" #17152B />
     <meta name="color-scheme" content="light" />
     <link
@@ -40,6 +60,44 @@
     />
   --></head>
   <body>
+    <div
+      class="welcome-overlay"
+      id="welcome-overly"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="welcome-heading"
+    >
+      <form class="welcome-card" id="welcome-form" novalidate>
+        <span class="welcome=mark"
+          ><i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i>
+        </span>
+        <p class="welcome-eyebrow">Welcome to FlowSpace</p>
+        <h2 id="welcome-heading">Let's make room for your day.</h2>
+        <p class="welcome-copy">
+          Tell us your name and we'll set up your space.
+        </p>
+        <label class="sr-only" for="welcome-name">Your name</label>
+        <input
+          id="welcome-name"
+          class="welcome-input"
+          type="text"
+          maxlength="40"
+          autocomplete="name"
+          placeholder="Your name, for example Jennifer-Richard"
+          required
+        />
+        <p class="welcome-error" id="welcome-error" role="alert"></p>
+        <button class="welcome-button" type="submit">
+          Enter FlowSpace<i
+            class="fa-solid fa-arrow-right"
+            aria-hidden="true"
+          ></i>
+        </button>
+        <button class="welcome-cancel" id="welcome-cancel" type="button" hidden>
+          Keep my current name
+        </button>
+      </form>
+    </div>
     <div class="app-shell">
       <aside class="sidebar" aria-label="Main-navigation">
         <div class="brand">
@@ -87,9 +145,10 @@
           <p>You don't have to do it all. Just the next thing.</p>
         </div>
         <div class="profile">
-          <span class="avatar" aria-hidden="true">AM</span>
+          <span class="avatar" id="profile-initials" aria-hidden="true">G</span>
           <span class="profile-copy"
-            ><strong>Alex Morgan</strong><span>Your personal Space</span>
+            ><strong id="profile-name">Guest</strong
+            ><span>Your personal Space</span>
           </span>
           <button
             class="profile-menu"
@@ -142,9 +201,12 @@
             <div>
               <p class="eyebrow" id="current-date">YOUR DAY, YOUR PACE</p>
               <h1 id="welcome-title">
-                Good morning, Alex<span aria-hidden="true"></span>
+                Good morning.<span aria-hidden="true"></span>
               </h1>
               <p>A fresh page. Let's make it a good one.</p>
+              <button class="link-button" id="change-name" type="button">
+                Not you? Change name
+              </button>
             </div>
             <div class="welcome-actions">
               <button class="button button-primary" id="add-task">
@@ -453,7 +515,7 @@
                 <div
                   class="activity-bars"
                   id="activity-bars"
-                  role="img"
+                  role="group"
                   aria-label="Focus minutes over the last seven days"
                 ></div>
                 <div class="activity-legend">
@@ -572,4 +634,5 @@
     <div id="toast-root" aria-live="polite"></div>
     <script type="module" src="src/flowspace.js"></script>
   </body>
+  >
 </html>

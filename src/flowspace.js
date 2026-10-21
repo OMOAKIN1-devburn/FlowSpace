@@ -1,13 +1,45 @@
 "use strict";
-console.log("FlowSpace JS loaded");
 
 const TASKS_KEY = "flowspace-tasks.v1";
 const THEME_KEY = "flowspace.theme.v1";
+const USER_KEY = "flowspace.user.v1";
+let userName = "";
+try {
+  userName = (localStorage.getItem(USER_KEY) || "").trim();
+} catch {}
+
+function firstName() {
+  return userName.split(" ")[0] || "friend";
+}
+function initials() {
+  const parts = userName.split(" ").filter(Boolean);
+  if (!parts.length) return "G";
+  return (
+    parts[0][0] + (parts.length > 1 ? parts[parts.length - 1][0] : "")
+  ).toUpperCase();
+}
+function paintUser() {
+  $("#profile-name").textContent = userName || "Guest";
+  $("#profile-initials").textContent = initials();
+  updateGreeting();
+}
+function showWelcome(changing = false) {
+  document.documentElement.classList.remove("has-user");
+  $(".app-shell").inert = true;
+  $("#welcome-name").value = changing ? userName : "";
+  $("#welcome-error").textContent = "";
+  $("#welcome-cancel").hidden = !changing;
+  setTimeout(() => $("#welcome-name").focus(), 50);
+}
+function closeWelcome() {
+  document.documentElement.classList.add("has-user");
+  $(".app-shell").inert = false;
+}
 const SETTINGS_KEY = "flowspace.settings.v1";
 const ACTIVITY_KEY = "flowspace.activity.v1";
 const themes = {
   electric: {
-    navy: "#171525",
+    navy: "#17152b",
     violet: "#7655f6",
     coral: "#ff718b",
     orange: "#ffaa5b",
@@ -43,7 +75,7 @@ const themes = {
     orange: "#f3a34d",
     mint: "#a9c884",
     sky: "#87b9c3",
-    lavender: "#f7ea37",
+    lavender: "#f7eae7",
     paper: "#fffaf4",
     ink: "#45353f",
     muted: "#7a646c",
@@ -230,6 +262,9 @@ function applyTheme(themeName) {
   Object.entries(palette).forEach(([key, value]) =>
     style.setProperty(`--${key}`, value),
   );
+  try {
+    localStorage.setItem("flowspace.palette.v1", JSON.stringify(palette));
+  } catch {}
   settings.theme = themeName;
   saveSettings();
   try {
@@ -294,7 +329,7 @@ function updateGreeting() {
   const greeting =
     hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
   $("#welcome-title").innerHTML =
-    `${greeting}, Alex<span aria-hidden="true">.</span`;
+    `${greeting}, ${esc(firstName())}<span aria-hidden="true">.</span>`;
   $("#current-date").textContent = formatDate(new Date()).toUpperCase();
 }
 
@@ -451,7 +486,7 @@ function renderActivity() {
         day.value ? 10 : 4,
         Math.round((day.value / max) * 100),
       );
-      return `<div class="activity-day${day.isToday ? " today" : ""}" aria-label="${esc(day.label)}: ${day.value} focus minutes"><div class="bar-track"><div class="bar-fill"style="height:${height}%"></div></div><span>${esc(day.label)}</span></div>`;
+      return `<div role="img" class="activity-day${day.isToday ? " today" : ""}" aria-label="${esc(day.label)}: ${day.value} focus minutes"><div class="bar-track"><div class="bar-fill"style="height:${height}%"></div></div><span>${esc(day.label)}</span></div>`;
     })
     .join("");
   const total = days.reduce((sum, day) => sum + day.value, 0);
@@ -931,9 +966,35 @@ $("#mobile-menu").addEventListener("click", openMobileNav);
 $("#notifications-button").addEventListener("click", () =>
   announce("You're all caught up. Enjoy the quiet."),
 );
-$("#profile-button").addEventListener("click", () =>
-  announce("You're in your personal workspace, Alex."),
-);
+$("#profile-button").addEventListener("click", () => showWelcome(true));
+$("#change-name").addEventListener("click", () => showWelcome(true));
+$("#welcome-cancel").addEventListener("click", closeWelcome);
+
+$("#welcome-form").addEventListener("submit", (event) => {
+  event.preventDefault();
+  const name = $("#welcome-name").value.replace(/\s+/g, " ").trim();
+  const error = $("#welcome-error");
+  if (name.length < 2) {
+    error.textContent = "Please type your name to continue.";
+    return;
+  }
+  if (!/^[\p{L}][\p{L}\p{M}''.\-]*$/u.test(name)) {
+    error.textContent =
+      "Letters only, please. Spaces, hyphens and apostrophes are fine.";
+    return;
+  }
+  userName = name;
+  try {
+    localStorage.setItem(USER_KEY, name);
+  } catch {}
+  closeWelcome();
+  paintUser();
+  announce(`Welcome tp FlowSpace, ${firstName()}.`);
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && !$("#welcome-cancel").hidden) closeWindow();
+});
 function applyTextScale(value) {
   const scale = Math.max(0.7, Math.min(2, Math.round(value * 10) / 10));
   settings.textScale = scale;
@@ -1451,6 +1512,9 @@ updateGreeting();
 applyTheme(localStorage.getItem(THEME_KEY) || settings.theme);
 applyTextScale(Number(settings.textScale) || 1);
 renderTasks();
+paintUser();
+if (userName) document.documentElement.classList.add("has-user");
+else showWelcome();
 
 function checkReminders() {
   const now = Date.now();
