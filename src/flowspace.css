@@ -1956,3 +1956,72 @@ button,
     color: color-mix(in srgb, var(--violet), black 15%);
   }
 }
+
+.welcome-hint {
+  line-height: 1.5;
+}
+.welcome-hint span {
+  display: block;
+}
+
+@media (pointer: fine), (max-width: 699px) {
+  .welcome-card {
+    width: min(100%, 540px);
+    padding: clamp(22px, 4vw, 34px) clamp(22px, 5vw, 40px);
+  }
+  .welcome-mark {
+    width: 48px;
+    height: 48px;
+    margin-bottom: 10px;
+    border-radius: 15px;
+  }
+  .welcome-eyebrow {
+    margin-bottom: 6px;
+  }
+  .welcome-card h2 {
+    font-size: calc(clamp(24px, 4.5vw, 32px) * var(--text-scale));
+    margin-bottom: 8px;
+  }
+  .welcome-copy {
+    margin-bottom: 16px;
+  }
+  .welcome-input,
+  .welcome-button {
+    height: 50px;
+  }
+  .welcome-hint {
+    margin-top: 8px;
+  }
+  .welcome-error {
+    min-height: 0;
+    margin: 8px 0;
+  }
+  .welcome-error:empty {
+    display: none;
+  }
+  .welcome-button {
+    margin-top: 16px;
+  }
+}
+
+.welcome-card h2 {
+  font-size: calc(clamp(26px, 6vw, 38px) * var(--text-scale));
+}
+@media (pointer: coarse) and (min-width: 700px) {
+  .welcome-card {
+    width: min(92vw, 860px);
+    padding: 64px 56px;
+    border-radius: 32px;
+  }
+  .welcome-mark {
+    width: 84px;
+    height: 84px;
+    border-radius: 26px;
+    margin-bottom: 26px;
+  }
+  .welcome-input,
+  .welcome-button {
+    height: 84px;
+    border-radius: 20px;
+  }
+}

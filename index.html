@@ -15,7 +15,16 @@
           if (localStorage.getItem("flowspace.user.v1"))
             root.classList.add("has-user");
           if (theme === "dark") root.style.colorScheme = "dark";
-          if (s.textScale) root.style.setProperty("--text-scale", s.textScale);
+          var ts =
+            localStorage.getItem("flowspace.textscale.v1") || s.textScale;
+          if (
+            !ts &&
+            matchMedia("(pointer: coarse)").matches &&
+            Math.min(screen.width, screen.height) < 600 &&
+            window.innerWidth > 700
+          )
+            ts = 1.7;
+          if (ts) root.style.setProperty("--text-scale", ts);
           var p = JSON.parse(
             localStorage.getItem("flowspace.palette.v1") || "null",
           );
@@ -83,9 +92,13 @@
           type="text"
           maxlength="40"
           autocomplete="name"
-          placeholder="Your name, for example Jennifer-Richard"
+          placeholder="Your name"
           required
         />
+        <p class="welcome-hint">
+          <span>Use your full name, like Jennifer-Richard,</span>
+          <span>or a nickname, like Jenny.</span>
+        </p>
         <p class="welcome-error" id="welcome-error" role="alert"></p>
         <button class="welcome-button" type="submit">
           Enter FlowSpace<i

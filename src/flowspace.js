@@ -64,7 +64,7 @@ const themes = {
     paper: "#f8fcf9",
     ink: "#dceae7",
     muted: "#4f6a6e",
-    line: "#dceae7",
+    line: "#243b43",
     surface: "#ffffff",
     canvas: "#f2f8f6",
   },
@@ -989,7 +989,7 @@ $("#welcome-form").addEventListener("submit", (event) => {
   } catch {}
   closeWelcome();
   paintUser();
-  announce(`Welcome tp FlowSpace, ${firstName()}.`);
+  announce(`Welcome to FlowSpace, ${firstName()}.`);
 });
 
 document.addEventListener("keydown", (event) => {
