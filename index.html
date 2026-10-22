@@ -1,19 +1,31 @@
 <!doctype html>
 <html lang="en">
   <head>
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="FlowSpace" />
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width" , initial-scale="1" />
     <script>
       (function () {
         try {
           var root = document.documentElement;
+          root.classList.add("preload");
+          window.addEventListener("load", function () {
+            requestAnimationFrame(function () {
+              requestAnimationFrame(function () {
+                root.classList.remove("preload");
+              });
+            });
+          });
           var s = JSON.parse(
             localStorage.getItem("flowspace.settings.v1") || "{}",
           );
           var theme = localStorage.getItem("flowspace.theme.v1") || s.theme;
           if (theme) root.dataset.theme = theme;
-          if (localStorage.getItem("flowspace.user.v1"))
+          if (sessionStorage.getItem("flowspace.entered.v1"))
             root.classList.add("has-user");
+          root.classList.add("has-user");
           if (theme === "dark") root.style.colorScheme = "dark";
           var ts =
             localStorage.getItem("flowspace.textscale.v1") || s.textScale;
@@ -28,12 +40,24 @@
           var p = JSON.parse(
             localStorage.getItem("flowspace.palette.v1") || "null",
           );
-          if (p) for (var k in p) root.style.setProperty("--" + k, p[k]);
+          if (p) {
+            for (var k in p) root.style.setProperty("--" + k, p[k]);
+            if (p.canvas) root.style.backgroundColor = p.canvas;
+          }
         } catch (e) {}
       })();
     </script>
+    <style>
+      html[data-theme="dark"] {
+        background: #121120;
+        color-scheme: dark;
+      }
+      html[data-theme="dark"] body {
+        background: #121120;
+      }
+    </style>
     <meta name="theme-color" content="" #17152B />
-    <meta name="color-scheme" content="light" />
+    <meta name="color-scheme" content="light dark" />
     <link
       rel="icon"
       type="image/svg=xml"
@@ -96,7 +120,7 @@
           required
         />
         <p class="welcome-hint">
-          <span>Use your full name, like Jennifer-Richard,</span>
+          <span>Use your full name, like Jennifer Richard,</span>
           <span>or a nickname, like Jenny.</span>
         </p>
         <p class="welcome-error" id="welcome-error" role="alert"></p>

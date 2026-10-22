@@ -2,10 +2,20 @@
 
 const TASKS_KEY = "flowspace-tasks.v1";
 const THEME_KEY = "flowspace.theme.v1";
+const TEXT_KEY = "flowspace.textscale.v1";
+let restoringScale = true;
+function defaultTextScale() {
+  const phoneInDesktopMode =
+    matchMedia("(pointer: coarse)").matches &&
+    Math.min(screen.width, screen.height) < 600 &&
+    window.innerWidth > 700;
+  return phoneInDesktopMode ? 1.7 : 1;
+}
 const USER_KEY = "flowspace.user.v1";
+const ENTERED_KEY = "flowspace.entered.v1";
 let userName = "";
 try {
-  userName = (localStorage.getItem(USER_KEY) || "").trim();
+  userName = (sessionStorage.getItem(USER_KEY) || "").trim();
 } catch {}
 
 function firstName() {
@@ -32,6 +42,9 @@ function showWelcome(changing = false) {
   setTimeout(() => $("#welcome-name").focus(), 50);
 }
 function closeWelcome() {
+  try {
+    sessionStorage.setItem(ENTERED_KEY, "1");
+  } catch {}
   document.documentElement.classList.add("has-user");
   $(".app-shell").inert = false;
 }
@@ -55,16 +68,16 @@ const themes = {
   },
   ocean: {
     navy: "#123344",
-    violet: "#188e9b",
+    violet: "#0f7f8c",
     coral: "#ef877a",
     orange: "#f3b969",
     mint: "#5cc6b1",
     sky: "#6ebbdd",
     lavender: "#e5f4f3",
     paper: "#f8fcf9",
-    ink: "#dceae7",
-    muted: "#4f6a6e",
-    line: "#243b43",
+    ink: "#102a33",
+    muted: "#3f5a60",
+    line: "#d3e3e0",
     surface: "#ffffff",
     canvas: "#f2f8f6",
   },
@@ -78,7 +91,7 @@ const themes = {
     lavender: "#f7eae7",
     paper: "#fffaf4",
     ink: "#45353f",
-    muted: "#7a646c",
+    muted: "#6e5a62",
     line: "#eee2dd",
     surface: "#ffffff",
     canvas: "#fbf5f1",
@@ -962,6 +975,124 @@ function setupDragAndDrop() {
   });
 }
 setupDragAndDrop();
+function setupTouchDrag() {
+  const board = $(".board-columns");
+  const HOLD_MS = 320;
+  const TOLERANCE = 10;
+  let card = null,
+    timer = null,
+    active = false,
+    ghost = null,
+    raf = null;
+  let startX = 0,
+    startY = 0,
+    lastX = 0,
+    lastY = 0,
+    offX = 0,
+    offY = 0;
+
+  const clearOver = () =>
+    $$(".drag-over", board).forEach((el) => el.classList.remove("drag-over"));
+  const columnAt = (x, y) =>
+    document.elementFromPoint(x, y)?.closest(".task-column") || null;
+
+  function moveGhost(x, y) {
+    ghost.style.transform = `translate(${x - offX}px, ${y - offY}px) rotate(2deg)`;
+    clearOver();
+    const col = columnAt(x, y);
+    if (col) col.classList.add("drag-over");
+  }
+
+  function autoScroll() {
+    if (!active) return;
+    if (lastY < 90) window.scrollBy(0, 14);
+    else if (lastY > window.innerHeight - 90) window.scrollBy(0, 14);
+    moverGhost(lastX, lastY);
+    raf = requestAnimationFrame(autoScroll);
+  }
+
+  function begin() {
+    active = true;
+    const rect = card.getBoundingClientRect();
+    offX = startX - rect.left;
+    offY = startY - rect.top;
+    ghost = card.cloneNode(true);
+    ghost.classList.add("touch-ghost");
+    ghost.style.width = `${rect.width}px`;
+    document.body.appendChild(ghost);
+    card.classList.add("dragging");
+    navigator.vibrate?.(15);
+    moveGhost(startX.startY);
+    raf = requestAnimationFrame(autoScroll);
+  }
+
+  function release() {
+    clearTimeout(timer);
+    cancelAnimationFrame(raf);
+    if (card) {
+      card.removeEventListener("touchmove", onMove);
+      card.removeEventListener("touchend", onEnd);
+      card.removeEventListener("touchcancel", onEnd);
+      card.draggable = true;
+    }
+  }
+
+  function onMove(e) {
+    const t = e.touches[0];
+    lastX = t.clientX;
+    lastY = t.clientY;
+    if (!active) {
+      if (Math.hypot(lastX - startX, lastY - startY) > TOLERANCE) {
+        release();
+        card = null;
+      }
+      return;
+    }
+    e.preventDefault();
+    moveGhost(lastX, lastY);
+  }
+
+  function onEnd(e) {
+    const dropped = e.type === "touchend";
+    if (active) {
+      e.preventDefault();
+      const col = dropped ? columnAt(lastX, lastY) : null;
+      const task = tasks.find((t) => t.id === card.dataset.taskId);
+      const status = col?.dataset.column;
+      ghost.remove();
+      ghost = null;
+      card.classList.remove("dragging");
+      clearOver();
+      active = false;
+      release();
+      card = null;
+      if (task && status && task.status !== status) setTaskStatus(task, status);
+      return;
+    }
+    release();
+    card = null;
+  }
+
+  board.addEventListener(
+    "touchstart",
+    (e) => {
+      if (e.touches.length !== 1 || card) return;
+      if (e.target.closest("button, a, input, select, textarea, label")) return;
+      const el = e.target.closest(".task-card");
+      if (!el) return;
+      card = el;
+      card.draggable = false;
+      startX = lastX = e.touches[0].clientX;
+      startY = lastY = e.touches[0].clientY;
+      card.addEventListener("touchmove", onMove, { passive: false });
+      card.addEventListener("touchend", onEnd, { passive: false });
+      card.addEventListener("touchcancel", onEnd);
+      timer = setTimeout(begin, HOLD_MS);
+    },
+    { passive: true },
+  );
+}
+setupTouchDrag();
 $("#mobile-menu").addEventListener("click", openMobileNav);
 $("#notifications-button").addEventListener("click", () =>
   announce("You're all caught up. Enjoy the quiet."),
@@ -978,14 +1109,14 @@ $("#welcome-form").addEventListener("submit", (event) => {
     error.textContent = "Please type your name to continue.";
     return;
   }
-  if (!/^[\p{L}][\p{L}\p{M}''.\-]*$/u.test(name)) {
+  if (!/^[\p{L}][\p{L}\p{M}''.\u0020-]*$/u.test(name)) {
     error.textContent =
       "Letters only, please. Spaces, hyphens and apostrophes are fine.";
     return;
   }
   userName = name;
   try {
-    localStorage.setItem(USER_KEY, name);
+    sessionStorage.setItem(USER_KEY, name);
   } catch {}
   closeWelcome();
   paintUser();
@@ -1002,6 +1133,16 @@ function applyTextScale(value) {
   const label = $("#text-size-label");
   if (label) label.textContent = `${Math.round(scale * 100)}%`;
   saveSettings();
+  if (!restoringScale) {
+    try {
+      localStorage.setItem(
+        TEXT_KEY,
+        getComputedStyle(document.documentElement)
+          .getPropertyValue("--text-scale")
+          .trim(),
+      );
+    } catch {}
+  }
 }
 $("#text-smaller").addEventListener("click", () =>
   applyTextScale((settings.textScale || 1) - 0.1),
@@ -1510,11 +1651,20 @@ $("#test-reminder-bell").addEventListener("click", () =>
 
 updateGreeting();
 applyTheme(localStorage.getItem(THEME_KEY) || settings.theme);
-applyTextScale(Number(settings.textScale) || 1);
+applyTextScale(
+  Number(localStorage.getItem(TEXT_KEY)) ||
+    Number(settings.textScale) ||
+    defaultTextScale(),
+);
+restoringScale = false;
 renderTasks();
 paintUser();
-if (userName) document.documentElement.classList.add("has-user");
-else showWelcome();
+let entered = false;
+try {
+  entered = Boolean(sessionStorage.getItem(ENTERED_KEY));
+} catch {}
+if (userName && entered) document.documentElement.classList.add("has-user");
+else showWelcome(Boolean(userName));
 
 function checkReminders() {
   const now = Date.now();
