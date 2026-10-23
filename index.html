@@ -80,6 +80,7 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="src/flowspace.css" />
+    <link rel="stylesheet" href="src/guide.css" />
 
     <!-- Font Awesome: keep ONLY ONE of these two active -->
 
@@ -508,6 +509,17 @@
                     <button type="button" id="test-reminder-bell">
                       Test reminder bell
                     </button>
+                    <button type="button" class="guide-invite" data-open-guide>
+                      <span class="gi-main"
+                        ><i
+                          class="fa-solid fa-wand-magic-sparkles"
+                          aria-hidden="true"
+                        ></i
+                        >Want a quick guide to FlowSpace? </span
+                      ><span class="gi-sub"
+                        >A 2-minute guided tour with voice . skip anytime</span
+                      >
+                    </button>
                   </div>
                 </div>
               </section>
@@ -670,6 +682,7 @@
     <div id="modal-root"></div>
     <div id="toast-root" aria-live="polite"></div>
     <script type="module" src="src/flowspace.js"></script>
+    <script type="module" src="src/guide.js"></script>
   </body>
   >
 </html>
