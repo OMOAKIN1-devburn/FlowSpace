@@ -181,7 +181,9 @@ function afterStep() {
   if (!root) return;
   clearTimeout(watchdog);
   const host = root.querySelector(".g-host");
+  const label = root.querySelector(".g-hostname small");
   if (host) host.classList.remove("speaking");
+  if (label) label.textContent = "Your FlowSpace guide";
   if (playing && index < STEPS.length - 1) {
     timer = setTimeout(() => {
       if (root) go(index + 1);
@@ -195,11 +197,16 @@ function startStep() {
   const say = SAY[index] || "";
   const bubble = root.querySelector(".g-typed");
   const host = root.querySelector(".g-host");
+  const label = root.querySelector(".g-hostname small");
+  const setLabel = (text) => {
+    if (label) label.textContent = text;
+  };
   syncControls();
   root.classList.toggle("is-paused", !playing);
   if (!playing) {
     bubble.textContent = say;
     host.classList.remove("speaking");
+    setLabel("Paused");
     return;
   }
   const total = estimate(say);
@@ -233,19 +240,46 @@ function startStep() {
     audioEl.onerror = fallback;
     audioEl.play().catch(fallback);
   } else if (voiceOn && synth) {
-    const voice = pickVoice();
-    const utterance = new SpeechSynthesisUtterance(say);
-    if (voice) utterance.voice = voice;
-    utterance.lang = voice ? voice.lang : "en-US";
-    utterance.onend = done;
-    utterance.onerror = fallback;
+    let started = false;
+    let tries = 0;
+    let current = null;
+    setLabel("Flo is getting ready...");
     const speakNow = () => {
       if (id !== runId) return;
+      tries += 1;
+      const voice = pickVoice();
+      const utterance = new SpeechSynthesisUtterance(say);
+      current = utterance;
+      if (voice) utterance.voice = voice;
+      utterance.lang = voice ? voice.lang : "en-US";
+      utterance.onstart = () => {
+        if (id !== runId || current !== utterance) return;
+        started = true;
+        setLabel("Flo is speaking");
+        clearTimeout(watchdog);
+        watchdog = setTimeout(done, total * 2 + 4000);
+      };
+      utterance.onend = () => {
+        if (current === utterance) done();
+      };
+      utterance.onerror = () => {
+        if (current === utterance && started) fallback();
+      };
       synth.speak(utterance);
-      watchdog = setTimeout(done, total * 2 + 4000);
+      clearTimeout(watchdog);
+      watchdog = setTimeout(() => {
+        if (id !== runId || started) return;
+        if (tries < 2) {
+          synth.cancel();
+          setTimeout(speakNow, 200);
+        } else {
+          setLabel("Reading along, no sound");
+          fallback();
+        }
+      }, 2500);
     };
     if (busy) setTimeout(speakNow, 150);
-    else speakNow();
+    else speakNow;
   } else {
     timer = setTimeout(done, total);
   }
@@ -381,3 +415,40 @@ document.addEventListener("click", (event) => {
   event.preventDefault();
   open(trigger);
 });
+
+const INVITE = `<div class="guide-invite-wrap"><span class="gi-arrow" aria-hidden="true"><i class="fa-solid fa-arrow-down"></i></span><button type="button" class="guide-invite" data-open-guide><span class="gi-main"><i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i> Want a quick guide to FlowSpace?</span><span class="gi-sub">A 2-minute guided tour with voice · skip anytime</span></button></div>`;
+
+function addInvite() {
+  document.querySelectorAll("button").forEach((button) => {
+    if (!/^\s*Enter FlowSpace/i.test(button.textContent)) return;
+    const next = button.nextElementSibling;
+    if (next && next.classList.contains("guide-invite-wrap")) return;
+    button.insertAdjacentHTML("afterend", INVITE);
+  });
+}
+let inviteQueued = false;
+new MutationObserver(() => {
+  if (inviteQueued) return;
+  inviteQueued = true;
+  requestAnimationFrame(() => {
+    inviteQueued = false;
+    addInvite();
+  });
+}).observe(document.body, { childList: true, subtree: true });
+addInvite();
+
+let warmed = false;
+function warmUp() {
+  if (warmed || !synth) return;
+  warmed = true;
+  try {
+    const silent = new SpeechSynthesisUtterance(" ");
+    silent.volume = 0;
+    synth.speak(silent);
+  } catch (error) {
+    /* sound is optional */
+  }
+}
+if (synth) synth.getVoices();
+document.addEventListener("pointerdown", warmUp, { once: true, passive: true });
+document.addEventListener("keydown", warmUp, { once: true });

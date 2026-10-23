@@ -1649,6 +1649,25 @@ $("#test-reminder-bell").addEventListener("click", () =>
   paintFlowTimer();
 })();
 
+document.addEventListener("click", (event) => {
+  const link = event.target.closest("#modal-root .nav-link");
+  if (!link || !link.dataset.target) return;
+  const target = link.dataset.target;
+  $$(".nav-link").forEach((item) => {
+    const on = item.dataset.target === target;
+    item.classList.toggle("active", on);
+    if (on) item.setAttribute("aria-current", "page");
+    else item.removeAttribute("aria-current");
+  });
+  const closeButton = $("#modal-root .close-modal");
+  if (closeButton) closeButton.click();
+  else $("#modal-root").innerHTML = "";
+  document.body.style.overflow = "";
+  setTimeout(() => {
+    const section = document.getElementById(target);
+    if (section) section.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, 80);
+});
 updateGreeting();
 applyTheme(localStorage.getItem(THEME_KEY) || settings.theme);
 applyTextScale(
