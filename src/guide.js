@@ -279,7 +279,7 @@ function startStep() {
       }, 2500);
     };
     if (busy) setTimeout(speakNow, 150);
-    else speakNow;
+    else speakNow();
   } else {
     timer = setTimeout(done, total);
   }
