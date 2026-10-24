@@ -819,37 +819,55 @@ function changeMode(mode) {
   paintTimer();
 }
 
+function goToSection(id) {
+  $$(".nav-link").forEach((item) => {
+    const on = item.dataset.target === id;
+    item.classList.toggle("active", on);
+    if (on) item.setAttribute("aria-current", "page");
+    else item.removeAttribute("aria-current");
+  });
+  const section = document.getElementById(id);
+  if (!section) return;
+  requestAnimationFrame(() => {
+    try {
+      section.scrollIntoView({ block: "start", behavior: "instant" });
+    } catch (error) {
+      section.scrollIntoView({ block: "start" });
+    }
+  });
+}
+
 function openMobileNav() {
   const host = $("#modal-root");
-  if ($(".mobile-nav-modal", host)) {
+  if ($(".mnav", host)) {
     host.innerHTML = "";
     return;
   }
-  host.innerHTML = `<div class="modal-backdrop mobile-nav-backdrop"><section class="modal mobile-nav-modal" role="dialog" aria-modal=:true" aria-label="Navigation"><div class="modal-header"><div><h2>Go to</h2><p>Your day, at a glance.</p></div><button class="close-modal" aria-label="Close navigation'><i class="fa-solid fa-xmark" aria-hidden="true"></i></button></div><div class="nav-list">${$$(
-    ".nav-link",
-  )
-    .map(
-      (button) =>
-        `<button class="nav-link" data-target="${button.dataset.target}"><i class="${$("i", button).className}" aria-hidden="true"></i><span>${$("span", button).textContent}</span></button`,
-    )
-    .join("")}</div></section></div>`;
-  $(".close-modal", host).addEventListener("click", () => {
+  const items = $$(".sidebar .nav-link").map((link) => {
+    const current = link.classList.contains("active") ? " current" : "";
+    return `<button type="button" class="mnav-item${current}" data-go="${link.dataset.target}"><i class="${$("i", link).className}" aria-hidden="true"></i><span>${$("span", link).textContent}</span></button>`;
+  }).join("");
+  host.innerHTML = `<div class="mnav" id="mnav-backdrop"><section class="mnav-card" role="dialog" aria-modal="true" aria-label="Navigation"><div class="mnav-head"><h2>Go to</h2><button type="button" class="mnav-close" aria-label="Close menu"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button></div><div class="mnav-list">${items}</div></section></div>`;
+  function close() {
     host.innerHTML = "";
+    document.removeEventListener("keydown", onKey);
+  }
+  function onKey(event) {
+    if (event.key === "Escape") close();
+  }
+  document.addEventListener("keydown", onKey);
+  $(".mnav-close", host).addEventListener("click", close);
+  $("#mnav-backdrop", host).addEventListener("click", (event) => {
+    if (event.target.id === "mnav-backdrop") close();
   });
-  $$(".nav-link", host).forEach((button) =>
-    button.addEventListener("click", () => {
-      const target = document.getElementById(button.dataset.target);
-      host.innerHTML = "";
-      target?.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
-    }),
-  );
-  $(".mobile-nav-backdrop", host).addEventListener("click", (event) => {
-    if (event.target.classList.contains("mobile-nav-backdrop"))
-      host.innerHTML = "";
+  $$(".mnav-item", host).forEach((item) => {
+    item.addEventListener("click", () => {
+      const id = item.dataset.go;
+      close();
+      goToSection(id);
+    });
   });
+  $(".mnav-item", host).focus();
 }
 
 $("#add-task").addEventListener("click", () => openTaskModal());
@@ -1594,13 +1612,27 @@ freshButton("#focus-shortcut").addEventListener("click", () => {
   setFlowMode("focus");
   if (timerState.mode === "focus" && !timerState.running) startFlowTimer();
 });
+const timerGroup = document
+  .getElementById("timer-hours")
+  .closest('[role="group"]');
 ["timer-hours", "timer-minutes", "timer-seconds"].forEach((id) => {
-  const input = document.getElementById(id);
-  input.addEventListener("input", () => {
+  document.getElementById(id).addEventListener("input", () => {
     if (!timerState.running) applyDuration(readFields());
   });
-  input.addEventListener("change", () => loadFields(timerState.mode));
 });
+if (timerGroup) {
+  timerGroup.addEventListener("focusout", () => {
+    setTimeout(() => {
+      if (timerGroup.contains(document.activeElement)) return;
+      if (!timerState.running) {
+        const total = readFields();
+        if (total > 0) applyDuration(total);
+        else announce("A timer needs at least 1 second.");
+      }
+      loadFields(timerState.mode);
+    }, 0);
+  });
+}
 $("#timer-recommended").addEventListener("click", () => {
   if (timerState.running) return;
   applyDuration(DEFAULT_SECONDS[timerState.mode]);
@@ -1649,25 +1681,6 @@ $("#test-reminder-bell").addEventListener("click", () =>
   paintFlowTimer();
 })();
 
-document.addEventListener("click", (event) => {
-  const link = event.target.closest("#modal-root .nav-link");
-  if (!link || !link.dataset.target) return;
-  const target = link.dataset.target;
-  $$(".nav-link").forEach((item) => {
-    const on = item.dataset.target === target;
-    item.classList.toggle("active", on);
-    if (on) item.setAttribute("aria-current", "page");
-    else item.removeAttribute("aria-current");
-  });
-  const closeButton = $("#modal-root .close-modal");
-  if (closeButton) closeButton.click();
-  else $("#modal-root").innerHTML = "";
-  document.body.style.overflow = "";
-  setTimeout(() => {
-    const section = document.getElementById(target);
-    if (section) section.scrollIntoView({ behavior: "smooth", block: "start" });
-  }, 80);
-});
 updateGreeting();
 applyTheme(localStorage.getItem(THEME_KEY) || settings.theme);
 applyTextScale(
