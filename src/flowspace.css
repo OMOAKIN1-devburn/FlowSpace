@@ -2370,3 +2370,63 @@ welcome-row .welcome-actions {
   font-size: calc(15px * var(--text-scale, 1)) !important;
   padding: 8px 12px;
 }
+
+.remind-banner {
+  position: fixed;
+  top: max(12px, env(safe-area-inset-top));
+  left: 12px;
+  right: 12px;
+  z-index: 9500;
+  display: grid;
+  gap: 12px;
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 18px;
+  background: var(--navy, #17152b);
+  color: #fff;
+  box-shadow: 0 20px 60px rgba(10, 8, 30, 0.55);
+}
+.remind-text {
+  display: grid;
+  gap: 4px;
+}
+.remind-text strong {
+  font-size: calc(18px * var(--text-scale, 1));
+}
+.remind-text span {
+  color: #e4e1fb;
+  font-size: calc(16px * var(--text-scale, 1));
+  line-height: 1.4;
+}
+.remind-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.remind-actions button {
+  min-height: 44px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+  font-family: inherit;
+  font-weight: 800;
+  font-size: calc(15px * var(--text-scale, 1));
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.remind-actions .primary {
+  background: #fff;
+  color: #1f1b3a;
+}
+@media (hover: hover) {
+  .remind-actions button:hover {
+    background: rgba(255, 255, 255, 0.28);
+  }
+  .remind-actions .primary:hover {
+    background: #ece9ff;
+  }
+}

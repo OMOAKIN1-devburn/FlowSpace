@@ -843,10 +843,12 @@ function openMobileNav() {
     host.innerHTML = "";
     return;
   }
-  const items = $$(".sidebar .nav-link").map((link) => {
-    const current = link.classList.contains("active") ? " current" : "";
-    return `<button type="button" class="mnav-item${current}" data-go="${link.dataset.target}"><i class="${$("i", link).className}" aria-hidden="true"></i><span>${$("span", link).textContent}</span></button>`;
-  }).join("");
+  const items = $$(".sidebar .nav-link")
+    .map((link) => {
+      const current = link.classList.contains("active") ? " current" : "";
+      return `<button type="button" class="mnav-item${current}" data-go="${link.dataset.target}"><i class="${$("i", link).className}" aria-hidden="true"></i><span>${$("span", link).textContent}</span></button>`;
+    })
+    .join("");
   host.innerHTML = `<div class="mnav" id="mnav-backdrop"><section class="mnav-card" role="dialog" aria-modal="true" aria-label="Navigation"><div class="mnav-head"><h2>Go to</h2><button type="button" class="mnav-close" aria-label="Close menu"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button></div><div class="mnav-list">${items}</div></section></div>`;
   function close() {
     host.innerHTML = "";
@@ -1639,7 +1641,7 @@ $("#timer-recommended").addEventListener("click", () => {
   loadFields(timerState.mode);
 });
 const soundBox = $("#alarm-sound");
-soundBox.checked = settings.alarmSecond !== false;
+soundBox.checked = settings.alarmSound !== false;
 soundBox.addEventListener("change", () => {
   settings.alarmSound = soundBox.checked;
   saveSettings();
@@ -1681,6 +1683,180 @@ $("#test-reminder-bell").addEventListener("click", () =>
   paintFlowTimer();
 })();
 
+/* ===== Reminders that bring you back to FlowSpace ===== */
+const MISSED_WINDOW = 24 * 3600000;
+let remindBanner = null;
+
+function speakText(text, done) {
+  let finished = false;
+  let startWatch = null;
+  let endWatch = null;
+  const finish = () => {
+    if (finished) return;
+    finished = true;
+    clearTimeout(startWatch);
+    clearTimeout(endWatch);
+    if (done) done();
+  };
+  if (!("speechSynthesis" in window)) {
+    finish();
+    return;
+  }
+  try {
+    const synth = window.speechSynthesis;
+    if (synth.speaking || synth.pending) synth.cancel();
+    const voices = synth.getVoices().filter((voice) => /^en/i.test(voice.lang));
+    const prefer = [
+      "Natural",
+      "Online",
+      "Aria",
+      "Jenny",
+      "Samantha",
+      "Google US English",
+      "Google UK English Female",
+      "Zira",
+      "Hazel",
+      "Susan",
+    ];
+    let voice = null;
+    for (const name of prefer) {
+      voice = voices.find((item) => item.name.includes(name));
+      if (voice) break;
+    }
+    voice = voice || voices[0] || null;
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = voice ? voice.lang : "en-US";
+    if (voice) utterance.voice = voice;
+    utterance.onstart = () => clearTimeout(startWatch);
+    utterance.onend = finish;
+    utterance.onerror = finish;
+    synth.speak(utterance);
+    startWatch = setTimeout(() => {
+      synth.cancel();
+      finish();
+    }, 1800);
+    endWatch = setTimeout(finish, 15000);
+  } catch (error) {
+    finish();
+  }
+}
+
+async function showSystemNotification(title, body, tag) {
+  if (!("Notification" in window) || Notification.permission !== "granted")
+    return;
+  try {
+    const registration =
+      "serviceWorker" in navigator
+        ? await navigator.serviceWorker.getRegistration()
+        : null;
+    if (registration && registration.showNotification) {
+      await registration.showNotification(title, {
+        body,
+        tag,
+        renotify: true,
+        requireInteraction: true,
+        vibrate: [250, 120, 250, 120, 250],
+      });
+    } else {
+      new Notification(title, { body, tag });
+    }
+  } catch (error) {
+    /* notifications are optional */
+  }
+}
+
+function closeRemindBanner() {
+  if (remindBanner) remindBanner.remove();
+  remindBanner = null;
+}
+
+function showReminders(items) {
+  const first = items[0].task;
+  const missed = items.some((item) => item.missed);
+  const line =
+    items.length === 1
+      ? `Let's get back to FlowSpace and perform the task: ${first.title}.`
+      : `Let's get back to FlowSpace. You have ${items.length} reminders waiting. The first one is: ${first.title}.`;
+  const spoken = (missed ? "Welcome back. " : "") + line;
+  const names = items.map((item) => esc(item.task.title)).join(" · ");
+  closeRemindBanner();
+  remindBanner = document.createElement("div");
+  remindBanner.className = "remind-banner";
+  remindBanner.setAttribute("role", "alert");
+  remindBanner.dataset.say = spoken;
+  remindBanner.innerHTML = `<div class="remind-text"><strong>Let's get back to FlowSpace</strong><span>${missed ? "Waiting for you: " : "Time to perform: "}${names}</span></div><div class="remind-actions"><button type="button" class="primary" data-remind="listen"><i class="fa-solid fa-volume-high" aria-hidden="true"></i> Listen</button><button type="button" data-remind="open">Open my tasks</button><button type="button" data-remind="close">Dismiss</button></div>`;
+  document.body.appendChild(remindBanner);
+  items.forEach((item) => {
+    showSystemNotification(
+      "FlowSpace reminder",
+      `Let's get back to FlowSpace and perform the task: ${item.task.title}`,
+      `flowspace-${item.task.id}`,
+    );
+  });
+  if (document.hidden) document.title = `Reminder: ${first.title}`;
+  if (navigator.vibrate) navigator.vibrate([250, 120, 250]);
+  if (settings.alarmSound !== false) {
+    speakText(spoken, () => {
+      try {
+        startAlarm("reminder", `Reminder: ${first.title}`);
+      } catch (error) {
+        /* sound is optional */
+      }
+    });
+  }
+}
+
+document.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-remind]");
+  if (!button || !remindBanner) return;
+  const action = button.dataset.remind;
+  if (action === "listen") {
+    speakText(remindBanner.dataset.say || "");
+  } else if (action === "open") {
+    const board = document.getElementById("tasks");
+    closeRemindBanner();
+    if (board) board.scrollIntoView({ behavior: "smooth", block: "start" });
+  } else {
+    closeRemindBanner();
+  }
+});
+
+function checkRemindersNow() {
+  const now = Date.now();
+  const items = [];
+  let changed = false;
+  tasks.forEach((task) => {
+    if (task.status === "completed" || task.reminded || !task.dueTime) return;
+    if (!task.remind || task.remind === "none") return;
+    const stamp = dueTimestamp(task);
+    if (!stamp) return;
+    const fireAt = stamp - Number(task.remind) * 60000;
+    if (now < fireAt) return;
+    task.reminded = true;
+    changed = true;
+    if (now - stamp > MISSED_WINDOW) return;
+    items.push({ task, missed: now - fireAt > 90000 });
+  });
+  if (changed) {
+    saveTasks();
+    renderTasks();
+  }
+  if (items.length) showReminders(items);
+}
+
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) return;
+  checkRemindersNow();
+  if (typeof paintFlowTimer === "function") paintFlowTimer();
+});
+window.addEventListener("focus", checkRemindersNow);
+window.addEventListener("pageshow", checkRemindersNow);
+setInterval(checkRemindersNow, 5000);
+checkRemindersNow();
+
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("sw.js").catch(() => {});
+}
 updateGreeting();
 applyTheme(localStorage.getItem(THEME_KEY) || settings.theme);
 applyTextScale(
@@ -1699,6 +1875,7 @@ if (userName && entered) document.documentElement.classList.add("has-user");
 else showWelcome(Boolean(userName));
 
 function checkReminders() {
+  return;
   const now = Date.now();
   let changed = false;
   tasks.forEach((task) => {
